@@ -16,26 +16,34 @@ class LoginActivity : AppCompatActivity() {
         val etUsername = findViewById<EditText>(R.id.etUsername)
         val etPassword = findViewById<EditText>(R.id.etPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
+        val btnCreate = findViewById<Button>(R.id.btnCreateAccount)
 
         btnLogin.setOnClickListener {
             val username = etUsername.text.toString()
             val password = etPassword.text.toString()
 
-            if (username == "admin" && password == "admin") {
+            if (username.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Harap mengisi seluruh kolom", Toast.LENGTH_SHORT).show()
+            }
+            else if (username == "admin" && password == "admin") {
 
-                // Simpan status login
                 val sharedPref = getSharedPreferences("USER_SESSION", MODE_PRIVATE)
                 val editor = sharedPref.edit()
                 editor.putBoolean("IS_LOGIN", true)
+                editor.putString("USERNAME", username)
                 editor.apply()
 
-                // Pindah ke MainActivity
                 startActivity(Intent(this, MainActivity::class.java))
                 finish()
-
-            } else {
-                Toast.makeText(this, "Username atau Password salah", Toast.LENGTH_SHORT).show()
             }
+            else {
+                Toast.makeText(this, "Nama atau Password salah", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        btnCreate.setOnClickListener {
+            startActivity(Intent(this, CreateAccountActivity::class.java))
+            finish()
         }
     }
 }

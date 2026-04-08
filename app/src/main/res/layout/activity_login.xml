@@ -143,20 +143,22 @@
                         android:paddingBottom="11dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <TextView
-                    android:id="@+id/tvForgotPassword"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="18dp"
-                    android:text="Lupa password?"
-                    android:textSize="12sp"
-                    android:textColor="@color/blue_bold" />
+                <!-- Lupa Password -->
+<!--                <TextView-->
+<!--                    android:id="@+id/tvForgotPassword"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_gravity="end"-->
+<!--                    android:layout_marginTop="6dp"-->
+<!--                    android:layout_marginBottom="18dp"-->
+<!--                    android:text="Lupa password?"-->
+<!--                    android:textSize="12sp"-->
+<!--                    android:textColor="@color/blue_bold" />-->
 
                 <!-- Login Button -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnLogin"
+                    android:layout_marginTop="25dp"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:text="Masuk"

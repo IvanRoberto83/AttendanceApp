@@ -8,11 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.absenywm.LoginActivity
-import com.example.absenywm.R
 import com.example.absenywm.databinding.FragmentAccountBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AccountFragment : Fragment() {
 
@@ -30,10 +33,25 @@ class AccountFragment : Fragment() {
         _binding = FragmentAccountBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textNotifications
-        accountViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+        val sharedPref = requireActivity().getSharedPreferences("USER_SESSION", AppCompatActivity.MODE_PRIVATE)
+        val username = sharedPref.getString("USERNAME", "User")
+        if (username != null) {
+            binding.tvAvatarInitials.text = username.firstOrNull()?.uppercase() ?: "?"
+            binding.tvProfileName.text = username
         }
+
+        val jabatan = sharedPref.getString("JABATAN", "Staff Operasional")
+        binding.tvProfileRole.text = jabatan
+        binding.tvDepartment.text = jabatan
+
+        val id = sharedPref.getString("IDKARYAWAN", "YWM-001")
+        binding.tvEmployeeId.text = id
+
+        val phoneNumber = sharedPref.getString("PHONENUM", "08123456789")
+        binding.tvPhoneNumber.text = phoneNumber
+
+        val jamKerja = sharedPref.getString("JAMKERJA","08:00 – 15:00")
+        binding.tvWorkHours.text = jamKerja
 
         binding.btnLogout.setOnClickListener {
             showLogoutDialog()

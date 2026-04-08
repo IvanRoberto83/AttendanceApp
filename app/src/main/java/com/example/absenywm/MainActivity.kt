@@ -4,10 +4,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
-import android.text.Spannable
-import android.text.SpannableString
-import android.text.style.ImageSpan
-import android.text.style.TextAppearanceSpan
 import android.view.Gravity
 import android.widget.ImageView
 import android.widget.LinearLayout

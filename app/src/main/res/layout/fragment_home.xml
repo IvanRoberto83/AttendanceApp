@@ -38,16 +38,17 @@
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                tools:text="Wong Ganteng" />
+                tools:text="" />
 
             <TextView
                 android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
+                android:layout_marginBottom="25dp"
                 android:textColor="#80AEED"
                 android:textSize="12sp"
-                tools:text="Rabu, 8 April 2026" />
+                tools:text="" />
 
         </LinearLayout>
 
