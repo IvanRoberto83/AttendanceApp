@@ -1,7 +1,18 @@
 package com.example.absenywm
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ImageSpan
+import android.text.style.TextAppearanceSpan
+import android.view.Gravity
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.app.ActionBar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -23,6 +34,7 @@ class MainActivity : AppCompatActivity() {
         if (!isLogin) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
+            return
         }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -40,5 +52,35 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val title = destination.label?.toString() ?: ""
+
+            val layout = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER
+            }
+
+            val imageView = ImageView(this).apply {
+                setImageResource(R.drawable.icon)
+                layoutParams = LinearLayout.LayoutParams(100, 100)
+            }
+
+            val textView = TextView(this).apply {
+                text = title
+                textSize = 18f
+                setTextColor(Color.WHITE)
+                setTypeface(null, Typeface.BOLD)
+                setPadding(25, 0, 0, 0)
+            }
+
+            layout.addView(imageView)
+            layout.addView(textView)
+
+            supportActionBar?.apply {
+                displayOptions = ActionBar.DISPLAY_SHOW_CUSTOM
+                customView = layout
+            }
+        }
     }
 }
