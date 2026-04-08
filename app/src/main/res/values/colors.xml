@@ -6,4 +6,8 @@
     <color name="blue_light">#1354AB</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="red">#FF3C3C</color>
+
+    <color name="orange_bold_transparent">#FFD6BD</color>
+    <color name="white_bold_transparent">#EEF2FF</color>
 </resources>

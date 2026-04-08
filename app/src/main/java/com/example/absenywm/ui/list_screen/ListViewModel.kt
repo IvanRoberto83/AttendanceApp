@@ -1,4 +1,4 @@
-package com.example.absenywm.ui.dashboard
+package com.example.absenywm.ui.list_screen
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

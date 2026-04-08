@@ -1,4 +1,4 @@
-package com.example.absenywm.ui.notifications
+package com.example.absenywm.ui.account_screen
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

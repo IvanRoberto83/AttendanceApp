@@ -1,5 +1,6 @@
 package com.example.absenywm
 
+import android.content.Intent
 import android.os.Bundle
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +16,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sharedPref = getSharedPreferences("USER_SESSION", MODE_PRIVATE)
+        val isLogin = sharedPref.getBoolean("IS_LOGIN", false)
+
+        if (!isLogin) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)

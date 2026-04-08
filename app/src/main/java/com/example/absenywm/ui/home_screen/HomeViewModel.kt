@@ -1,4 +1,4 @@
-package com.example.absenywm.ui.home
+package com.example.absenywm.ui.home_screen
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
