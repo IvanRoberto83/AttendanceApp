@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.absenywm.EditAccountActivity
 import com.example.absenywm.LoginActivity
 import com.example.absenywm.databinding.FragmentAccountBinding
 import java.text.SimpleDateFormat
@@ -57,6 +58,15 @@ class AccountFragment : Fragment() {
             showLogoutDialog()
         }
 
+        binding.btnDeleteAccount.setOnClickListener {
+            showDeleteAccountDialog()
+        }
+
+        binding.btnEditProfile.setOnClickListener {
+            val intent = Intent(requireContext(), EditAccountActivity::class.java)
+            startActivity(intent)
+        }
+
         return root
     }
 
@@ -92,15 +102,22 @@ class AccountFragment : Fragment() {
     }
 
     private fun showDeleteAccountDialog() {
-        AlertDialog.Builder(requireContext())
+        val alertDialog = AlertDialog.Builder(requireContext())
             .setTitle("Hapus Akun")
             .setMessage("Akun akan dihapus permanen. Lanjutkan?")
-            .setIcon(android.R.drawable.ic_dialog_alert)
             .setPositiveButton("Hapus") { _, _ ->
                 // TODO hapus akun
             }
             .setNegativeButton("Batal", null)
             .show()
+
+        alertDialog.show()
+
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            .setTextColor(resources.getColor(android.R.color.holo_red_dark))
+
+        alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+            .setTextColor(resources.getColor(android.R.color.black))
     }
 
     override fun onDestroyView() {
