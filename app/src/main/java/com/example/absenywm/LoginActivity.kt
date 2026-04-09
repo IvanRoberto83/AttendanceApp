@@ -26,11 +26,21 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this, "Harap mengisi seluruh kolom", Toast.LENGTH_SHORT).show()
             }
             else if (username == "admin" && password == "admin") {
+                val id = "YWM-001"
+                val departemen = "Staff Operasional"
+                val noTelp = "08123456789"
+                val jamKerja = "08:00 - 15:00"
 
                 val sharedPref = getSharedPreferences("USER_SESSION", MODE_PRIVATE)
                 val editor = sharedPref.edit()
                 editor.putBoolean("IS_LOGIN", true)
+
                 editor.putString("USERNAME", username)
+                editor.putString("JABATAN", departemen)
+                editor.putString("IDKARYAWAN", id)
+                editor.putString("PHONENUM", noTelp)
+                editor.putString("JAMKERJA", jamKerja)
+                editor.putString("PASSWORD", password)
                 editor.apply()
 
                 startActivity(Intent(this, MainActivity::class.java))

@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -14,45 +14,47 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.absenywm.EditAccountActivity
 import com.example.absenywm.LoginActivity
 import com.example.absenywm.databinding.FragmentAccountBinding
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class AccountFragment : Fragment() {
 
     private var _binding: FragmentAccountBinding? = null
     private val binding get() = _binding!!
+    private lateinit var viewModel: AccountViewModel
+
+    private val editLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if(result.resultCode == android.app.Activity.RESULT_OK){
+            viewModel.loadUserData(requireContext())
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val accountViewModel =
-            ViewModelProvider(this).get(AccountViewModel::class.java)
-
         _binding = FragmentAccountBinding.inflate(inflater, container, false)
-        val root: View = binding.root
 
         val sharedPref = requireActivity().getSharedPreferences("USER_SESSION", AppCompatActivity.MODE_PRIVATE)
-        val username = sharedPref.getString("USERNAME", "User")
-        if (username != null) {
-            binding.tvAvatarInitials.text = username.firstOrNull()?.uppercase() ?: "?"
-            binding.tvProfileName.text = username
-        }
-
-        val jabatan = sharedPref.getString("JABATAN", "Staff Operasional")
-        binding.tvProfileRole.text = jabatan
-        binding.tvDepartment.text = jabatan
-
         val id = sharedPref.getString("IDKARYAWAN", "YWM-001")
         binding.tvEmployeeId.text = id
 
-        val phoneNumber = sharedPref.getString("PHONENUM", "08123456789")
-        binding.tvPhoneNumber.text = phoneNumber
+        return binding.root
+    }
 
-        val jamKerja = sharedPref.getString("JAMKERJA","08:00 – 15:00")
-        binding.tvWorkHours.text = jamKerja
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        viewModel = ViewModelProvider(this)[AccountViewModel::class.java]
+
+        viewModel.username.observe(viewLifecycleOwner) { binding.tvAvatarInitials.text = it.firstOrNull()?.uppercase() }
+        viewModel.username.observe(viewLifecycleOwner) { binding.tvProfileName.text = it }
+        viewModel.department.observe(viewLifecycleOwner) { binding.tvDepartment.text = it }
+        viewModel.phoneNumber.observe(viewLifecycleOwner) { binding.tvPhoneNumber.text = it }
+        viewModel.shift.observe(viewLifecycleOwner) { binding.tvWorkHours.text = it }
+
+        viewModel.loadUserData(requireContext())
 
         binding.btnLogout.setOnClickListener {
             showLogoutDialog()
@@ -64,27 +66,21 @@ class AccountFragment : Fragment() {
 
         binding.btnEditProfile.setOnClickListener {
             val intent = Intent(requireContext(), EditAccountActivity::class.java)
-            startActivity(intent)
+            editLauncher.launch(intent)
         }
-
-        return root
     }
 
     private fun showLogoutDialog() {
         val dialog = AlertDialog.Builder(requireContext())
             .setTitle("Keluar")
             .setMessage("Yakin ingin keluar dari akun?")
-            .setPositiveButton("Ya") { _, _ ->
-                logout()
-            }
+            .setPositiveButton("Ya") { _, _ -> logout() }
             .setNegativeButton("Batal", null)
             .create()
 
         dialog.show()
-
         dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             .setTextColor(resources.getColor(android.R.color.holo_red_dark))
-
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
             .setTextColor(resources.getColor(android.R.color.black))
     }
@@ -92,10 +88,7 @@ class AccountFragment : Fragment() {
     private fun logout() {
         val sharedPref = requireActivity()
             .getSharedPreferences("USER_SESSION", Context.MODE_PRIVATE)
-
-        val editor = sharedPref.edit()
-        editor.clear()
-        editor.apply()
+        sharedPref.edit().clear().apply()
 
         startActivity(Intent(requireActivity(), LoginActivity::class.java))
         requireActivity().finish()
@@ -106,16 +99,14 @@ class AccountFragment : Fragment() {
             .setTitle("Hapus Akun")
             .setMessage("Akun akan dihapus permanen. Lanjutkan?")
             .setPositiveButton("Hapus") { _, _ ->
-                // TODO hapus akun
+                // TODO: hapus akun
             }
             .setNegativeButton("Batal", null)
-            .show()
+            .create()
 
         alertDialog.show()
-
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
             .setTextColor(resources.getColor(android.R.color.holo_red_dark))
-
         alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
             .setTextColor(resources.getColor(android.R.color.black))
     }
