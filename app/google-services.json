@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "1019381082047",
+    "firebase_url": "https://absenywm-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "absenywm",
     "storage_bucket": "absenywm.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.absenywm"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1019381082047-44r7jpgm8q5hq73att92qes7fqiu2jr7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.absenywm",
+            "certificate_hash": "72d4f5adb69c75db08c45967aef998c310d9dc2a"
+          }
+        },
+        {
+          "client_id": "1019381082047-20pco2hvhp9p3o5pg15u5ki81fogaop9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCyIIIVQof0cHYemv9FTL1TpSNy7DFQ2iY"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1019381082047-20pco2hvhp9p3o5pg15u5ki81fogaop9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

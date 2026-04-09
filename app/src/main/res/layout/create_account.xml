@@ -37,23 +37,6 @@
                     android:scaleType="fitCenter" />
             </androidx.cardview.widget.CardView>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="AbsenYWM"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="@color/white" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Buat Akun Anda"
-                android:textSize="13sp"
-                android:textColor="#B3D1FF" />
-
         </LinearLayout>
 
         <!-- Form Card -->
@@ -104,6 +87,43 @@
                         android:imeOptions="actionDone"
                         android:singleLine="true"
                         android:hint="Masukkan nama"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:paddingTop="11dp"
+                        android:paddingBottom="11dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Email -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EMAIL"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#999999"
+                    android:letterSpacing="0.08" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="14dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:boxCornerRadiusTopStart="10dp"
+                    app:boxCornerRadiusTopEnd="10dp"
+                    app:boxCornerRadiusBottomStart="10dp"
+                    app:boxCornerRadiusBottomEnd="10dp"
+                    app:boxStrokeColor="@color/blue_bold"
+                    app:hintEnabled="false">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEmail"
+                        android:inputType="textEmailAddress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionDone"
+                        android:singleLine="true"
+                        android:hint="Masukkan email"
                         android:textSize="14sp"
                         android:textColor="@color/black"
                         android:paddingTop="11dp"
