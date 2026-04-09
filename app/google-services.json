@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1019381082047",
+    "project_id": "absenywm",
+    "storage_bucket": "absenywm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1019381082047:android:558bd75bb14c9c43d5630a",
+        "android_client_info": {
+          "package_name": "com.example.absenywm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyIIIVQof0cHYemv9FTL1TpSNy7DFQ2iY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
