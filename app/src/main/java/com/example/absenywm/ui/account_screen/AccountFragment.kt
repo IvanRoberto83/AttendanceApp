@@ -35,11 +35,6 @@ class AccountFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAccountBinding.inflate(inflater, container, false)
-
-        val sharedPref = requireActivity().getSharedPreferences("USER_SESSION", AppCompatActivity.MODE_PRIVATE)
-        val id = sharedPref.getString("IDKARYAWAN", "YWM-001")
-        binding.tvEmployeeId.text = id
-
         return binding.root
     }
 
@@ -50,6 +45,8 @@ class AccountFragment : Fragment() {
 
         viewModel.username.observe(viewLifecycleOwner) { binding.tvAvatarInitials.text = it.firstOrNull()?.uppercase() }
         viewModel.username.observe(viewLifecycleOwner) { binding.tvProfileName.text = it }
+        viewModel.department.observe(viewLifecycleOwner) { binding.tvProfileRole.text = it }
+        viewModel.email.observe(viewLifecycleOwner) { binding.tvEmail.text = it }
         viewModel.department.observe(viewLifecycleOwner) { binding.tvDepartment.text = it }
         viewModel.phoneNumber.observe(viewLifecycleOwner) { binding.tvPhoneNumber.text = it }
         viewModel.shift.observe(viewLifecycleOwner) { binding.tvWorkHours.text = it }
