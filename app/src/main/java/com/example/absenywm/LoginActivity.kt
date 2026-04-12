@@ -6,20 +6,22 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
+import com.google.firebase.firestore.FirebaseFirestore
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var database: DatabaseReference
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
         auth = FirebaseAuth.getInstance()
-        database = FirebaseDatabase.getInstance().getReference("users")
+        db = FirebaseFirestore.getInstance()
 
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etPassword = findViewById<EditText>(R.id.etPassword)
@@ -36,7 +38,6 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Login ke Firebase Auth
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
 
@@ -49,58 +50,49 @@ class LoginActivity : AppCompatActivity() {
                             return@addOnCompleteListener
                         }
 
-                        // Ambil data dari Realtime Database
-                        database.child(userId)
-                            .addListenerForSingleValueEvent(object : ValueEventListener {
+                        db.collection("users")
+                            .document(userId)
+                            .get()
+                            .addOnSuccessListener { document ->
 
-                                override fun onDataChange(snapshot: DataSnapshot) {
+                                if (document.exists()) {
 
-                                    if (snapshot.exists()) {
+                                    val username = document.getString("username") ?: ""
+                                    val department = document.getString("department") ?: ""
+                                    val phoneNumber = document.getString("phoneNumber") ?: ""
+                                    val shift = document.getString("shift") ?: ""
 
-                                        val username = snapshot.child("username").value.toString()
-                                        val department = snapshot.child("department").value.toString()
-                                        val phoneNumber = snapshot.child("phoneNumber").value.toString()
-                                        val shift = snapshot.child("shift").value.toString()
+                                    val sharedPref = getSharedPreferences("USER_SESSION", MODE_PRIVATE)
+                                    val editor = sharedPref.edit()
 
-                                        // Simpan ke SharedPreferences
-                                        val sharedPref = getSharedPreferences("USER_SESSION", MODE_PRIVATE)
-                                        val editor = sharedPref.edit()
+                                    editor.putBoolean("IS_LOGIN", true)
+                                    editor.putString("USERNAME", username)
+                                    editor.putString("EMAIL", email)
+                                    editor.putString("DEPARTMENT", department)
+                                    editor.putString("PHONENUM", phoneNumber)
+                                    editor.putString("SHIFT", shift)
 
-                                        editor.putBoolean("IS_LOGIN", true)
-                                        editor.putString("USERNAME", username)
-                                        editor.putString("EMAIL", email)
-                                        editor.putString("DEPARTMENT", department)
-                                        editor.putString("PHONENUM", phoneNumber)
-                                        editor.putString("SHIFT", shift)
+                                    editor.apply()
 
-                                        editor.apply()
+                                    Toast.makeText(this, "Login berhasil", Toast.LENGTH_SHORT).show()
 
-                                        Toast.makeText(this@LoginActivity, "Login berhasil", Toast.LENGTH_SHORT).show()
+                                    startActivity(Intent(this, MainActivity::class.java))
+                                    finish()
 
-                                        startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                                        finish()
-
-                                    } else {
-                                        Toast.makeText(this@LoginActivity, "Data user tidak ditemukan", Toast.LENGTH_SHORT).show()
-                                    }
+                                } else {
+                                    Toast.makeText(this, "Data user tidak ditemukan", Toast.LENGTH_SHORT).show()
                                 }
-
-                                override fun onCancelled(error: DatabaseError) {
-                                    Toast.makeText(this@LoginActivity, "Gagal mengambil data", Toast.LENGTH_SHORT).show()
-                                }
-                            })
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(this, "Gagal mengambil data", Toast.LENGTH_SHORT).show()
+                            }
 
                     } else {
-                        val errorMessage = when {
-                            task.exception?.message?.contains("badly formatted") == true ->
-                                "Format email salah"
-                            task.exception?.message?.contains("password is invalid") == true ->
-                                "Password salah"
-                            task.exception?.message?.contains("no user record") == true ->
-                                "Email tidak terdaftar"
-                            else -> "Login gagal"
+                        val errorMessage = when (task.exception) {
+                            is FirebaseAuthInvalidUserException -> "Email tidak terdaftar"
+                            is FirebaseAuthInvalidCredentialsException -> "Email atau password salah"
+                            else -> "Login gagal: ${task.exception?.message}"
                         }
-
                         Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
                     }
                 }

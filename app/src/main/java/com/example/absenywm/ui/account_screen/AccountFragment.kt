@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -96,7 +97,19 @@ class AccountFragment : Fragment() {
             .setTitle("Hapus Akun")
             .setMessage("Akun akan dihapus permanen. Lanjutkan?")
             .setPositiveButton("Hapus") { _, _ ->
-                // TODO: hapus akun
+                viewModel.deleteAccount(requireContext(),
+                    onSuccess = {
+                        val sharedPref = requireActivity()
+                            .getSharedPreferences("USER_SESSION", Context.MODE_PRIVATE)
+                        sharedPref.edit().clear().apply()
+
+                        startActivity(Intent(requireActivity(), LoginActivity::class.java))
+                        requireActivity().finish()
+                    },
+                    onError = {
+                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                    }
+                )
             }
             .setNegativeButton("Batal", null)
             .create()
