@@ -7,18 +7,20 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FirebaseFirestore
 
 class EditAccountActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private val database = FirebaseDatabase.getInstance().getReference("users")
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.edit_account)
 
         auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
+
         val sharedPref = getSharedPreferences("USER_SESSION", MODE_PRIVATE)
 
         val dtProfile = findViewById<TextView>(R.id.tvAvatarInitials)
@@ -99,7 +101,9 @@ class EditAccountActivity : AppCompatActivity() {
                 "shift" to newShift
             )
 
-            database.child(userId).updateChildren(userMap)
+            db.collection("users")
+                .document(userId)
+                .update(userMap)
                 .addOnSuccessListener {
 
                     if (newPassword.isNotEmpty()) {
@@ -118,7 +122,7 @@ class EditAccountActivity : AppCompatActivity() {
                     finish()
                 }
                 .addOnFailureListener {
-                    Toast.makeText(this, "Gagal update ke Firebase", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Gagal update Firestore", Toast.LENGTH_SHORT).show()
                 }
         }
 

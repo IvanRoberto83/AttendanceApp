@@ -33,11 +33,13 @@ class AccountViewModel : ViewModel() {
         }
 
         val uid = user.uid
+        val db = FirebaseFirestore.getInstance()
 
-        val database = FirebaseDatabase.getInstance().getReference("users")
-
-        database.child(uid).removeValue()
+        db.collection("users")
+            .document(uid)
+            .delete()
             .addOnSuccessListener {
+
                 user.delete()
                     .addOnSuccessListener {
                         onSuccess()
@@ -46,10 +48,11 @@ class AccountViewModel : ViewModel() {
                         it.printStackTrace()
                         onError("Auth error: ${it.message}")
                     }
+
             }
             .addOnFailureListener {
                 it.printStackTrace()
-                onError("Database error: ${it.message}")
+                onError("Firestore error: ${it.message}")
             }
     }
 }
