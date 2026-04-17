@@ -1,5 +1,6 @@
 package com.example.absenywm.ui.home_screen
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,9 +15,6 @@ import java.util.*
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -24,8 +22,7 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel =
-            ViewModelProvider(this).get(HomeViewModel::class.java)
+        ViewModelProvider(this).get(HomeViewModel::class.java)
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -37,6 +34,18 @@ class HomeFragment : Fragment() {
         val dateFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
         val currentDate = dateFormat.format(Date())
         binding.tvDate.text = currentDate
+
+        binding.btnCheckIn.setOnClickListener {
+            val intent = Intent(requireContext(), AbsensiActivity::class.java)
+            intent.putExtra("type", "masuk")
+            startActivity(intent)
+        }
+
+        binding.btnCheckOut.setOnClickListener {
+            val intent = Intent(requireContext(), AbsensiActivity::class.java)
+            intent.putExtra("type", "keluar")
+            startActivity(intent)
+        }
 
         return root
     }

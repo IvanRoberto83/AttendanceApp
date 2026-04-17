@@ -1,0 +1,294 @@
+package com.example.absenywm.ui.home_screen
+
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.location.Location
+import android.os.Bundle
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.example.absenywm.R
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polygon
+import java.text.SimpleDateFormat
+import java.util.*
+
+class AbsensiActivity : AppCompatActivity() {
+
+    private val officeLat = -7.772596552088771
+    private val officeLng = 110.37066349571364
+    private val radiusMeters = 200.0
+
+    private lateinit var mapView: MapView
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private lateinit var tvTitle: TextView
+    private lateinit var tvDistance: TextView
+
+    private lateinit var btnHadir: MaterialButton
+    private lateinit var btnSakit: MaterialButton
+    private lateinit var btnIzin: MaterialButton
+    private lateinit var btnTukarYa: MaterialButton
+    private lateinit var btnTukarTidak: MaterialButton
+    private lateinit var btnSubmit: MaterialButton
+    private lateinit var etKeterangan: TextInputEditText
+
+    private var selectedStatus = "Hadir"
+    private var tukarShift = false
+    private var absenType = "masuk"
+    private var userLatLng: GeoPoint? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.sheet_absensi)
+
+        absenType = intent.getStringExtra("type") ?: "masuk"
+
+        Configuration.getInstance().userAgentValue = packageName
+
+        initViews()
+        setupTypeUI()
+        setupDefaultState()
+        setupMap()
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        getUserLocation()
+
+        setupStatusButtons()
+        setupTukarShiftButtons()
+
+        btnSubmit.setOnClickListener { submitAbsen() }
+    }
+
+    private fun initViews() {
+        tvTitle = findViewById(R.id.tvTitle)
+        tvDistance = findViewById(R.id.tvDistance)
+
+        btnHadir = findViewById(R.id.btnHadir)
+        btnSakit = findViewById(R.id.btnSakit)
+        btnIzin = findViewById(R.id.btnIzin)
+
+        btnTukarYa = findViewById(R.id.btnTukarYa)
+        btnTukarTidak = findViewById(R.id.btnTukarTidak)
+
+        btnSubmit = findViewById(R.id.btnSubmitAbsen)
+        etKeterangan = findViewById(R.id.etKeterangan)
+
+        mapView = findViewById(R.id.mapView)
+    }
+
+    @SuppressLint("ResourceAsColor")
+    private fun setupTypeUI() {
+        if (absenType == "masuk") {
+            tvTitle.text = "Absensi Masuk"
+            tvTitle.setTextColor(getColor(R.color.blue_bold))
+
+            btnSubmit.text = "Absen Masuk"
+            btnSubmit.setBackgroundColor(getColor(R.color.blue_bold))
+        } else {
+            tvTitle.text = "Absensi Keluar"
+            tvTitle.setTextColor(getColor(R.color.orange_bold))
+
+            btnSubmit.text = "Absen Keluar"
+            btnSubmit.setBackgroundColor(getColor(R.color.orange_bold))
+        }
+    }
+
+    private fun setupDefaultState() {
+        listOf(btnHadir, btnSakit, btnIzin).forEach { setUnselected(it) }
+        listOf(btnTukarYa, btnTukarTidak).forEach { setUnselected(it) }
+
+        setSelected(btnHadir)
+        setSelected(btnTukarTidak)
+    }
+
+    private fun setupMap() {
+        mapView.setTileSource(TileSourceFactory.MAPNIK)
+        mapView.setMultiTouchControls(false)
+        mapView.isClickable = false
+
+        val officePoint = GeoPoint(officeLat, officeLng)
+
+        mapView.controller.setZoom(16.0)
+        mapView.controller.setCenter(officePoint)
+
+        val marker = Marker(mapView)
+        marker.position = officePoint
+        marker.title = "Kantor"
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+        mapView.overlays.add(marker)
+
+        val circlePoints = ArrayList<GeoPoint>()
+        for (i in 0 until 360) {
+            val angle = Math.toRadians(i.toDouble())
+            val lat = officeLat + (radiusMeters / 111320) * Math.cos(angle)
+            val lng = officeLng + (radiusMeters / (111320 * Math.cos(Math.toRadians(officeLat)))) * Math.sin(angle)
+            circlePoints.add(GeoPoint(lat, lng))
+        }
+
+        val circle = Polygon(mapView)
+        circle.points = circlePoints
+
+        if (absenType == "masuk") {
+            circle.fillColor = 0x220000FF
+            circle.strokeColor = 0xFF0000FF.toInt()
+        } else {
+            circle.fillColor = 0x22FF0000
+            circle.strokeColor = 0xFFFF0000.toInt()
+        }
+
+        circle.strokeWidth = 2f
+        mapView.overlays.add(circle)
+
+        mapView.invalidate()
+    }
+
+    private fun getUserLocation() {
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            tvDistance.text = "Izin lokasi tidak diberikan"
+            return
+        }
+
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            location?.let {
+                userLatLng = GeoPoint(it.latitude, it.longitude)
+
+                val results = FloatArray(1)
+                Location.distanceBetween(
+                    it.latitude, it.longitude,
+                    officeLat, officeLng,
+                    results
+                )
+
+                val distanceM = results[0].toInt()
+                tvDistance.text = "Jarak anda ke kantor sekitar $distanceM Meter"
+
+                val userMarker = Marker(mapView)
+                userMarker.position = userLatLng!!
+                userMarker.title = "Lokasi Anda"
+                mapView.overlays.add(userMarker)
+
+                mapView.controller.animateTo(userLatLng)
+                mapView.invalidate()
+            } ?: run {
+                tvDistance.text = "Lokasi tidak dapat dideteksi"
+            }
+        }
+    }
+
+    private fun setupStatusButtons() {
+        val buttons = listOf(btnHadir, btnSakit, btnIzin)
+
+        buttons.forEach { button ->
+            button.setOnClickListener {
+                selectedStatus = button.text.toString()
+
+                buttons.forEach { setUnselected(it) }
+                setSelected(button)
+            }
+        }
+
+        setSelected(btnHadir)
+    }
+
+    private fun setupTukarShiftButtons() {
+        val buttons = listOf(btnTukarYa, btnTukarTidak)
+
+        buttons.forEach { button ->
+            button.setOnClickListener {
+                tukarShift = button.text == "Ya"
+
+                buttons.forEach { setUnselected(it) }
+                setSelected(button)
+            }
+        }
+
+        setSelected(btnTukarTidak)
+    }
+
+    private fun setSelected(btn: MaterialButton) {
+        if (absenType == "masuk") {
+            btn.setTextColor(getColor(android.R.color.white))
+            btn.setBackgroundColor(getColor(R.color.blue_bold))
+            btn.strokeWidth = 0
+        } else {
+            btn.setTextColor(getColor(android.R.color.white))
+            btn.setBackgroundColor(getColor(R.color.orange_bold))
+            btn.strokeWidth = 0
+        }
+    }
+
+    private fun setUnselected(btn: MaterialButton) {
+        if (absenType == "masuk") {
+            btn.setTextColor(getColor(R.color.blue_bold))
+            btn.setBackgroundColor(android.graphics.Color.parseColor("#EEF3FF"))
+            btn.strokeWidth = 2
+            btn.strokeColor = android.content.res.ColorStateList.valueOf(
+                android.graphics.Color.parseColor("#B5C8F9")
+            )
+        } else {
+            btn.setTextColor(getColor(R.color.orange_bold))
+            btn.setBackgroundColor(android.graphics.Color.parseColor("#FFF0E9"))
+            btn.strokeWidth = 2
+            btn.strokeColor = android.content.res.ColorStateList.valueOf(
+                android.graphics.Color.parseColor("#FAC9AC")
+            )
+        }
+    }
+
+    private fun submitAbsen() {
+        val keterangan = etKeterangan.text.toString().trim()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        val now = Date()
+        val dateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(now)
+        val timeNow = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(now)
+
+        val absenData = hashMapOf(
+            "status" to selectedStatus,
+            "tukarShift" to tukarShift,
+            "keterangan" to keterangan,
+            "waktu" to timeNow,
+            "tanggal" to dateKey,
+            "type" to absenType,
+            "lat" to (userLatLng?.latitude ?: 0.0),
+            "lng" to (userLatLng?.longitude ?: 0.0)
+        )
+
+        btnSubmit.isEnabled = false
+
+        FirebaseFirestore.getInstance()
+            .collection("absensi")
+            .document(userId)
+            .collection("records")
+            .document("${dateKey}_${absenType}")
+            .set(absenData)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Absen $absenType berhasil", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Gagal", Toast.LENGTH_SHORT).show()
+                btnSubmit.isEnabled = true
+            }
+    }
+
+    override fun onResume() { super.onResume(); mapView.onResume() }
+    override fun onPause() { super.onPause(); mapView.onPause() }
+    override fun onDestroy() { super.onDestroy(); mapView.onDetach() }
+}
