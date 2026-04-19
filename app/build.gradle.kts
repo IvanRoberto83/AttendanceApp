@@ -45,9 +45,14 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation ("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-database")
 
     implementation("org.osmdroid:osmdroid-android:6.1.18")
+
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

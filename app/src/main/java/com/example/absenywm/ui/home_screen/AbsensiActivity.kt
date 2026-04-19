@@ -2,6 +2,7 @@ package com.example.absenywm.ui.home_screen
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -11,6 +12,7 @@ import android.widget.AutoCompleteTextView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.absenywm.R
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -26,11 +28,20 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
+import com.google.android.gms.location.*
+import com.google.android.gms.common.api.ResolvableApiException
+import android.content.IntentSender
+import android.location.LocationManager
 import java.text.SimpleDateFormat
 import java.util.*
 
 class AbsensiActivity : AppCompatActivity() {
     private val db = FirebaseFirestore.getInstance()
+
+    private val LOCATION_PERMISSION_CODE = 101
+    private val GPS_REQUEST_CODE = 1001
+
+    private lateinit var locationCallback: LocationCallback
 
     private val officeLat = -7.772596552088771
     private val officeLng = 110.37066349571364
@@ -68,6 +79,152 @@ class AbsensiActivity : AppCompatActivity() {
     private var absenType = "masuk"
     private var userLatLng: GeoPoint? = null
 
+    private fun checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            checkGPS()
+        } else {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_PERMISSION_CODE
+            )
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == LOCATION_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            ) {
+                checkGPS()
+            } else {
+                Toast.makeText(this, "Izin lokasi diperlukan", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun checkGPS() {
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            5000
+        ).build()
+
+        val builder = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+
+        val client = LocationServices.getSettingsClient(this)
+        val task = client.checkLocationSettings(builder.build())
+
+        task.addOnSuccessListener {
+            startLocationUpdates()
+        }
+
+        task.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException) {
+                try {
+                    exception.startResolutionForResult(this, GPS_REQUEST_CODE)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else {
+                Toast.makeText(this, "GPS tidak tersedia", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == GPS_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                startLocationUpdates()
+            } else {
+                Toast.makeText(this, "GPS harus aktif", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun startLocationUpdates() {
+
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            5000
+        ).build()
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                val location = result.lastLocation ?: return
+
+                userLatLng = GeoPoint(location.latitude, location.longitude)
+
+                val results = FloatArray(1)
+                Location.distanceBetween(
+                    location.latitude, location.longitude,
+                    officeLat, officeLng,
+                    results
+                )
+
+                val distanceM = results[0].toInt()
+                tvDistance.text = "Jarak anda ke kantor sekitar $distanceM Meter"
+
+                updateUserMarker()
+            }
+        }
+
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            mainLooper
+        )
+    }
+
+    private var userMarker: Marker? = null
+
+    private fun updateUserMarker() {
+        userLatLng?.let {
+
+            if (userMarker == null) {
+                userMarker = Marker(mapView)
+                userMarker!!.infoWindow = null
+
+                val drawable = ContextCompat.getDrawable(this, R.drawable.baseline_man_24)
+                if (absenType == "masuk") {
+                    drawable?.setTint(ContextCompat.getColor(this, R.color.blue_bold))
+                } else {
+                    drawable?.setTint(ContextCompat.getColor(this, R.color.orange_bold))
+                }
+
+                userMarker!!.icon = drawable
+                mapView.overlays.add(userMarker)
+            }
+
+            userMarker!!.position = it
+
+            mapView.controller.animateTo(it)
+            mapView.invalidate()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mapView.onPause()
+
+        if (::locationCallback.isInitialized) {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.sheet_absensi)
@@ -83,7 +240,7 @@ class AbsensiActivity : AppCompatActivity() {
         setupMap()
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        getUserLocation()
+        checkLocationPermission()
 
         setupStatusButtons()
         setupTukarShiftButtons()
@@ -91,7 +248,7 @@ class AbsensiActivity : AppCompatActivity() {
             dropdownShift.showDropDown()
         }
 
-        btnSubmit.setOnClickListener { submitAbsen() }
+        btnSubmit.setOnClickListener { goToCamera() }
         btnBack.setOnClickListener { finish() }
     }
 
@@ -122,7 +279,7 @@ class AbsensiActivity : AppCompatActivity() {
             tvTitle.text = "Absensi Masuk"
             tvTitle.setTextColor(getColor(R.color.blue_bold))
 
-            btnSubmit.text = "Absen Masuk"
+            btnSubmit.text = "Selanjutnya"
             btnSubmit.setBackgroundColor(getColor(R.color.blue_bold))
 
             btnBack.setTextColor(getColor(R.color.blue_bold))
@@ -131,7 +288,7 @@ class AbsensiActivity : AppCompatActivity() {
             tvTitle.text = "Absensi Keluar"
             tvTitle.setTextColor(getColor(R.color.orange_bold))
 
-            btnSubmit.text = "Absen Keluar"
+            btnSubmit.text = "Selanjutnya"
             btnSubmit.setBackgroundColor(getColor(R.color.orange_bold))
 
             btnBack.setTextColor(getColor(R.color.orange_bold))
@@ -201,51 +358,6 @@ class AbsensiActivity : AppCompatActivity() {
         mapView.overlays.add(circle)
 
         mapView.invalidate()
-    }
-
-    private fun getUserLocation() {
-        if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            tvDistance.text = "Izin lokasi tidak diberikan"
-            return
-        }
-
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            location?.let {
-                userLatLng = GeoPoint(it.latitude, it.longitude)
-
-                val results = FloatArray(1)
-                Location.distanceBetween(
-                    it.latitude, it.longitude,
-                    officeLat, officeLng,
-                    results
-                )
-
-                val distanceM = results[0].toInt()
-                tvDistance.text = "Jarak anda ke kantor sekitar $distanceM Meter"
-
-                val userMarker = Marker(mapView)
-                userMarker.position = userLatLng!!
-                userMarker.infoWindow = null
-
-                val drawable = ContextCompat.getDrawable(this, R.drawable.baseline_man_24)
-                if (absenType == "masuk") {
-                    drawable?.setTint(ContextCompat.getColor(this, R.color.blue_bold))
-                } else {
-                    drawable?.setTint(ContextCompat.getColor(this, R.color.orange_bold))
-                }
-
-                userMarker.icon = drawable
-                mapView.overlays.add(userMarker)
-
-                mapView.controller.animateTo(userLatLng)
-                mapView.invalidate()
-            } ?: run {
-                tvDistance.text = "Lokasi tidak dapat dideteksi"
-            }
-        }
     }
 
     private fun setupStatusButtons() {
@@ -357,13 +469,8 @@ class AbsensiActivity : AppCompatActivity() {
         }
     }
 
-    private fun submitAbsen() {
+    private fun goToCamera() {
         val keterangan = etKeterangan.text.toString().trim()
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
-
-        val now = Date()
-        val dateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(now)
-        val timeNow = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(now)
 
         val selectedShift = if (tukarShift) {
             dropdownShift.text.toString()
@@ -371,37 +478,19 @@ class AbsensiActivity : AppCompatActivity() {
             null
         }
 
-        val absenData = hashMapOf(
-            "status" to selectedStatus,
-            "tukarShift" to tukarShift,
-            "shiftPengganti" to selectedShift,
-            "keterangan" to keterangan,
-            "waktu" to timeNow,
-            "tanggal" to dateKey,
-            "type" to absenType,
-            "lat" to (userLatLng?.latitude ?: 0.0),
-            "lng" to (userLatLng?.longitude ?: 0.0)
-        )
+        val intent = Intent(this, CameraActivity::class.java)
 
-        btnSubmit.isEnabled = false
+        intent.putExtra("status", selectedStatus)
+        intent.putExtra("tukarShift", tukarShift)
+        intent.putExtra("shiftPengganti", selectedShift)
+        intent.putExtra("keterangan", keterangan)
+        intent.putExtra("type", absenType)
+        intent.putExtra("lat", userLatLng?.latitude ?: 0.0)
+        intent.putExtra("lng", userLatLng?.longitude ?: 0.0)
 
-        FirebaseFirestore.getInstance()
-            .collection("absensi")
-            .document(userId)
-            .collection("records")
-            .document("${dateKey}_${absenType}")
-            .set(absenData)
-            .addOnSuccessListener {
-                Toast.makeText(this, "Absen $absenType berhasil", Toast.LENGTH_SHORT).show()
-                finish()
-            }
-            .addOnFailureListener {
-                Toast.makeText(this, "Gagal", Toast.LENGTH_SHORT).show()
-                btnSubmit.isEnabled = true
-            }
+        startActivity(intent)
     }
 
     override fun onResume() { super.onResume(); mapView.onResume() }
-    override fun onPause() { super.onPause(); mapView.onPause() }
     override fun onDestroy() { super.onDestroy(); mapView.onDetach() }
 }

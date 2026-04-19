@@ -2,10 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.absenywm">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
         android:allowBackup="true"
@@ -29,6 +34,7 @@
 
         <activity android:name=".LoginActivity"/>
         <activity android:name=".ui.home_screen.AbsensiActivity" />
+        <activity android:name=".ui.home_screen.CameraActivity" />
         <activity android:name=".MainActivity"/>
         <activity android:name=".CreateAccountActivity"/>
         <activity android:name=".EditAccountActivity" />
