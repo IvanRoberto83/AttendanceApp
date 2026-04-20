@@ -101,6 +101,24 @@
                     app:chipBackgroundColor="@drawable/chip_bg_selector"
                     android:textColor="@drawable/chip_text_selector" />
 
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipSakit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sakit"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    app:chipBackgroundColor="@drawable/chip_bg_selector"
+                    android:textColor="@drawable/chip_text_selector" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipIzin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Izin"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    app:chipBackgroundColor="@drawable/chip_bg_selector"
+                    android:textColor="@drawable/chip_text_selector" />
+
             </com.google.android.material.chip.ChipGroup>
         </LinearLayout>
     </HorizontalScrollView>
