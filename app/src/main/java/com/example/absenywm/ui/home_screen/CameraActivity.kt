@@ -1,9 +1,8 @@
 package com.example.absenywm.ui.home_screen
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.PorterDuff
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -12,15 +11,17 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.absenywm.MainActivity
 import com.example.absenywm.R
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import com.cloudinary.android.MediaManager
+import com.cloudinary.android.callback.ErrorInfo
+import com.cloudinary.android.callback.UploadCallback
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.Executors
 
 class CameraActivity : AppCompatActivity() {
 
@@ -42,25 +43,6 @@ class CameraActivity : AppCompatActivity() {
         private const val REQUEST_CODE_CAMERA = 100
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == REQUEST_CODE_CAMERA) {
-            if (grantResults.isNotEmpty() &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED
-            ) {
-                startCamera() 
-            } else {
-                Toast.makeText(this, "Izin kamera diperlukan", Toast.LENGTH_SHORT).show()
-                finish()
-            }
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
@@ -68,6 +50,8 @@ class CameraActivity : AppCompatActivity() {
         previewView = findViewById(R.id.previewView)
         btnCapture = findViewById(R.id.btnCapture)
         btnBack = findViewById(R.id.btnBack)
+
+        // ❌ HAPUS INIT CLOUDINARY DI SINI (SUDAH DI MyApp)
 
         status = intent.getStringExtra("status")
         tukarShift = intent.getBooleanExtra("tukarShift", false)
@@ -145,36 +129,78 @@ class CameraActivity : AppCompatActivity() {
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
+        btnCapture.isEnabled = false
+
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageSavedCallback {
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val uri = Uri.fromFile(photoFile)
 
-                    Toast.makeText(this@CameraActivity, "Foto diambil", Toast.LENGTH_SHORT).show()
-
-                    uploadToFirebase(uri)
+                    val compressedFile = compressImage(photoFile)
+                    uploadToCloudinary(compressedFile)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
+                    btnCapture.isEnabled = true
                     Toast.makeText(this@CameraActivity, "Gagal ambil foto", Toast.LENGTH_SHORT).show()
                 }
             }
         )
     }
 
-    private fun uploadToFirebase(photoUri: Uri) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    private fun compressImage(file: File): File {
+        val bitmap = android.graphics.BitmapFactory.decodeFile(file.path)
 
-        val storageRef = FirebaseStorage.getInstance().reference
-        val fileRef = storageRef.child("absensi/${userId}_${System.currentTimeMillis()}.jpg")
+        val maxWidth = 720
+        val ratio = bitmap.width.toFloat() / bitmap.height.toFloat()
 
-        fileRef.putFile(photoUri)
-            .addOnSuccessListener {
+        val width: Int
+        val height: Int
 
-                fileRef.downloadUrl.addOnSuccessListener { downloadUri ->
+        if (bitmap.width > bitmap.height) {
+            width = maxWidth
+            height = (maxWidth / ratio).toInt()
+        } else {
+            height = maxWidth
+            width = (maxWidth * ratio).toInt()
+        }
+
+        val resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, width, height, true)
+
+        val compressedFile = File(file.parent, "compressed_${file.name}")
+
+        val out = java.io.FileOutputStream(compressedFile)
+        resizedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 65, out)
+        out.flush()
+        out.close()
+
+        return compressedFile
+    }
+
+    private fun uploadToCloudinary(photoFile: File) {
+
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId == null) {
+            Toast.makeText(this, "User tidak ditemukan", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        MediaManager.get().upload(photoFile.path)
+            .unsigned("WredhaMulya")
+            .option("folder", "absensi")
+            .option("quality", "auto:low")
+            .option("fetch_format", "auto")
+            .callback(object : UploadCallback {
+
+                override fun onStart(requestId: String?) {}
+
+                override fun onProgress(requestId: String?, bytes: Long, totalBytes: Long) {}
+
+                override fun onSuccess(requestId: String?, resultData: MutableMap<Any?, Any?>?) {
+
+                    val imageUrl = resultData?.get("secure_url")?.toString()
 
                     val now = Date()
                     val dateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(now)
@@ -188,7 +214,7 @@ class CameraActivity : AppCompatActivity() {
                         "type" to type,
                         "lat" to lat,
                         "lng" to lng,
-                        "foto" to downloadUri.toString(),
+                        "foto" to imageUrl,
                         "tanggal" to dateKey,
                         "waktu" to timeNow
                     )
@@ -200,18 +226,33 @@ class CameraActivity : AppCompatActivity() {
                         .document("${dateKey}_${type}")
                         .set(data)
                         .addOnSuccessListener {
-                            Toast.makeText(this, "Absen berhasil", Toast.LENGTH_SHORT).show()
 
-                            finishAffinity()
+                            Toast.makeText(this@CameraActivity, "Absen berhasil", Toast.LENGTH_SHORT).show()
+
+                            // ✅ BALIK KE MAIN (NO CRASH, CLEAN STACK)
+                            val intent = Intent(this@CameraActivity, MainActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                            startActivity(intent)
+                            finish()
                         }
                         .addOnFailureListener {
-                            Toast.makeText(this, "Gagal simpan", Toast.LENGTH_SHORT).show()
+                            btnCapture.isEnabled = true
+                            Toast.makeText(this@CameraActivity, "Gagal simpan", Toast.LENGTH_SHORT).show()
                         }
                 }
-            }
-            .addOnFailureListener {
-                Toast.makeText(this, "Upload gagal", Toast.LENGTH_SHORT).show()
-            }
+
+                override fun onError(requestId: String?, error: ErrorInfo?) {
+                    btnCapture.isEnabled = true
+                    Toast.makeText(
+                        this@CameraActivity,
+                        "Upload gagal: ${error?.description}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                override fun onReschedule(requestId: String?, error: ErrorInfo?) {}
+            })
+            .dispatch()
     }
 
     private fun allPermissionsGranted() =
@@ -219,4 +260,9 @@ class CameraActivity : AppCompatActivity() {
             this,
             Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED
+
+    override fun onDestroy() {
+        super.onDestroy()
+        imageCapture = null
+    }
 }
