@@ -37,7 +37,6 @@ class AbsenAdapter(private val list: MutableList<AbsenModel>) :
         val bg = when (item.status) {
             "Hadir" -> R.drawable.bg_status_hadir
             "Telat" -> R.drawable.bg_status_telat
-            "Alpa" -> R.drawable.bg_status_alpa
             "Sakit" -> R.drawable.bg_status_sakit
             "Izin" -> R.drawable.bg_status_izin
             else -> R.drawable.bg_status_hadir

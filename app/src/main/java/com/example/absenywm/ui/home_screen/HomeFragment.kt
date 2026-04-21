@@ -31,21 +31,18 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        // 🔹 Ambil username dari session
         val sharedPref = requireActivity()
             .getSharedPreferences("USER_SESSION", AppCompatActivity.MODE_PRIVATE)
 
         val username = sharedPref.getString("USERNAME", "User")
         binding.tvUserName.text = username
 
-        // 🔹 Set tanggal sekarang
         val dateFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
         binding.tvDate.text = dateFormat.format(Date())
 
-        // 🔹 Button action (dengan validasi waktu)
         binding.btnCheckIn.setOnClickListener {
             if (!isWithinAbsenTime()) {
-                Toast.makeText(requireContext(), "Diluar jam absen!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Diluar jam absen", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -56,7 +53,7 @@ class HomeFragment : Fragment() {
 
         binding.btnCheckOut.setOnClickListener {
             if (!isWithinAbsenTime()) {
-                Toast.makeText(requireContext(), "Diluar jam absen!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Diluar jam absen", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -65,10 +62,8 @@ class HomeFragment : Fragment() {
             startActivity(intent)
         }
 
-        // 🔥 LOAD DATA
         loadTodayData()
         loadMonthlyStats()
-        updateAbsenButtonState()
 
         return root
     }
@@ -77,12 +72,8 @@ class HomeFragment : Fragment() {
         super.onResume()
         loadTodayData()
         loadMonthlyStats()
-        updateAbsenButtonState()
     }
 
-    // =========================
-    // ⏰ VALIDASI JAM ABSEN
-    // =========================
     private fun isWithinAbsenTime(): Boolean {
         val now = Calendar.getInstance()
 
@@ -92,27 +83,14 @@ class HomeFragment : Fragment() {
         val currentTotal = currentHour * 60 + currentMinute
 
         val ranges = listOf(
-            Pair(8 * 60, 8 * 60 + 30),    // 08:00 - 08:30
-            Pair(15 * 60, 15 * 60 + 30),  // 15:00 - 15:30
-            Pair(22 * 60, 22 * 60 + 30)   // 22:00 - 22:30
+            Pair(8 * 60, 8 * 60 + 30),
+            Pair(15 * 60, 15 * 60 + 30),
+            Pair(22 * 60, 22 * 60 + 30)
         )
 
         return ranges.any { currentTotal in it.first..it.second }
     }
 
-    private fun updateAbsenButtonState() {
-        val isOpen = isWithinAbsenTime()
-
-        binding.btnCheckIn.isEnabled = isOpen
-        binding.btnCheckOut.isEnabled = isOpen
-
-        binding.btnCheckIn.alpha = if (isOpen) 1f else 0.5f
-        binding.btnCheckOut.alpha = if (isOpen) 1f else 0.5f
-    }
-
-    // =========================
-    // 🔥 DATA HARI INI
-    // =========================
     private fun loadTodayData() {
 
         val userId = auth.currentUser?.uid ?: return
@@ -176,9 +154,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // =========================
-    // 📊 REKAP BULANAN
-    // =========================
     private fun loadMonthlyStats() {
 
         val userId = auth.currentUser?.uid ?: return
@@ -238,13 +213,15 @@ class HomeFragment : Fragment() {
                                     }
                                 }
 
-                                when (status) {
-                                    "Hadir" -> hadir++
-                                    "Sakit" -> sakit++
-                                    "Izin" -> izin++
+                                if (type == "masuk") {
+                                    when (status) {
+                                        "Hadir" -> hadir++
+                                        "Sakit" -> sakit++
+                                        "Izin" -> izin++
+                                    }
                                 }
 
-                                if (doc.getBoolean("tukarShift") == true) {
+                                if (type == "masuk" && doc.getBoolean("tukarShift") == true) {
                                     tukarShiftCount++
                                 }
                             }

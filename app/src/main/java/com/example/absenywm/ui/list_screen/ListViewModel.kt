@@ -48,7 +48,7 @@ class ListViewModel : ViewModel() {
                     val tukarShift = doc.getBoolean("tukarShift") ?: false
                     val shiftPengganti = doc.getString("shiftPengganti")
 
-                    val shiftMasuk = "08:00" // fallback (bisa kamu ganti dari user/session)
+                    val shiftMasuk = "08:00"
 
                     val shiftDipakai = if (tukarShift) {
                         extractStartTime(shiftPengganti)
@@ -88,8 +88,6 @@ class ListViewModel : ViewModel() {
         _absenList.value = filtered
         _isEmpty.value = filtered.isEmpty()
     }
-
-    // 🔥 FIX: shift-aware + aman format waktu
     private fun isLate(shift: String, waktu: String): Boolean {
         return try {
 
@@ -100,7 +98,7 @@ class ListViewModel : ViewModel() {
 
             val cal = Calendar.getInstance()
             cal.time = jamShift!!
-            cal.add(Calendar.MINUTE, 30) // toleransi telat
+            cal.add(Calendar.MINUTE, 30)
 
             jamAbsen!!.after(cal.time)
 
@@ -108,8 +106,6 @@ class ListViewModel : ViewModel() {
             false
         }
     }
-
-    // helper aman (kalau format "22:00 - 08:00")
     private fun extractStartTime(shift: String?): String {
         return try {
             shift?.split("-")?.get(0)?.trim() ?: "08:00"

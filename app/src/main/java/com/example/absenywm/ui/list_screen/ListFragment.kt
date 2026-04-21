@@ -72,7 +72,6 @@ class ListFragment : Fragment() {
             val filter = when (checkedIds[0]) {
                 binding.chipHadir.id -> "Hadir"
                 binding.chipTelat.id -> "Telat"
-                binding.chipAlpa.id -> "Alpa"
                 binding.chipSakit.id -> "Sakit"
                 binding.chipIzin.id -> "Izin"
                 else -> "Semua"

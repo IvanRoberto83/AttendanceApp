@@ -51,8 +51,6 @@ class CameraActivity : AppCompatActivity() {
         btnCapture = findViewById(R.id.btnCapture)
         btnBack = findViewById(R.id.btnBack)
 
-        // ❌ HAPUS INIT CLOUDINARY DI SINI (SUDAH DI MyApp)
-
         status = intent.getStringExtra("status")
         tukarShift = intent.getBooleanExtra("tukarShift", false)
         shiftPengganti = intent.getStringExtra("shiftPengganti")
@@ -229,7 +227,6 @@ class CameraActivity : AppCompatActivity() {
 
                             Toast.makeText(this@CameraActivity, "Absen berhasil", Toast.LENGTH_SHORT).show()
 
-                            // ✅ BALIK KE MAIN (NO CRASH, CLEAN STACK)
                             val intent = Intent(this@CameraActivity, MainActivity::class.java)
                             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                             startActivity(intent)

@@ -70,6 +70,8 @@ class AbsensiActivity : AppCompatActivity() {
 
     private var userShift = "08:00 - 15:00"
 
+    private var isInsideRadius = false
+
     private lateinit var btnSubmit: MaterialButton
     private lateinit var btnBack: MaterialButton
     private lateinit var etKeterangan: TextInputEditText
@@ -177,6 +179,13 @@ class AbsensiActivity : AppCompatActivity() {
 
                 val distanceM = results[0].toInt()
                 tvDistance.text = "Jarak anda ke kantor sekitar $distanceM Meter"
+
+                isInsideRadius = distanceM <= radiusMeters
+
+                if (isInsideRadius) {
+                    btnSubmit.isEnabled = true
+                    btnSubmit.alpha = 1f
+                }
 
                 updateUserMarker()
             }
@@ -470,6 +479,11 @@ class AbsensiActivity : AppCompatActivity() {
     }
 
     private fun goToCamera() {
+        if (!isInsideRadius) {
+            Toast.makeText(this, "Anda harus berada di area kantor", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val keterangan = etKeterangan.text.toString().trim()
 
         val selectedShift = if (tukarShift) {

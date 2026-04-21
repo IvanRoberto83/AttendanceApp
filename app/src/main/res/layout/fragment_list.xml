@@ -93,15 +93,6 @@
                     android:textColor="@drawable/chip_text_selector" />
 
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/chipAlpa"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Alpa"
-                    style="@style/Widget.MaterialComponents.Chip.Filter"
-                    app:chipBackgroundColor="@drawable/chip_bg_selector"
-                    android:textColor="@drawable/chip_text_selector" />
-
-                <com.google.android.material.chip.Chip
                     android:id="@+id/chipSakit"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
