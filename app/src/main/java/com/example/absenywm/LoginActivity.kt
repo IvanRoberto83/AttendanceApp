@@ -58,7 +58,7 @@ class LoginActivity : AppCompatActivity() {
                                 if (document.exists()) {
 
                                     val username = document.getString("username") ?: ""
-                                    val department = document.getString("department") ?: ""
+                                    val role = document.getString("role") ?: ""
                                     val phoneNumber = document.getString("phoneNumber") ?: ""
                                     val shift = document.getString("shift") ?: ""
 
@@ -68,7 +68,7 @@ class LoginActivity : AppCompatActivity() {
                                     editor.putBoolean("IS_LOGIN", true)
                                     editor.putString("USERNAME", username)
                                     editor.putString("EMAIL", email)
-                                    editor.putString("DEPARTMENT", department)
+                                    editor.putString("ROLE", role)
                                     editor.putString("PHONENUM", phoneNumber)
                                     editor.putString("SHIFT", shift)
 
@@ -76,7 +76,11 @@ class LoginActivity : AppCompatActivity() {
 
                                     Toast.makeText(this, "Login berhasil", Toast.LENGTH_SHORT).show()
 
-                                    startActivity(Intent(this, MainActivity::class.java))
+                                    if (role == "Administrator") {
+                                        startActivity(Intent(this, AdminActivity::class.java))
+                                    } else {
+                                        startActivity(Intent(this, MainActivity::class.java))
+                                    }
                                     finish()
 
                                 } else {

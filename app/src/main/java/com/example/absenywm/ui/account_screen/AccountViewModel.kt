@@ -9,7 +9,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 class AccountViewModel : ViewModel() {
     val email = MutableLiveData<String>()
     val username = MutableLiveData<String>()
-    val department = MutableLiveData<String>()
+    val role = MutableLiveData<String>()
     val phoneNumber = MutableLiveData<String>()
     val shift = MutableLiveData<String>()
 
@@ -18,7 +18,7 @@ class AccountViewModel : ViewModel() {
 
         email.value = pref.getString("EMAIL","")?: ""
         username.value = pref.getString("USERNAME", "") ?: ""
-        department.value = pref.getString("DEPARTMENT", "") ?: ""
+        role.value = pref.getString("ROLE", "") ?: ""
         phoneNumber.value = pref.getString("PHONENUM", "") ?: ""
         shift.value = pref.getString("SHIFT", "") ?: ""
     }

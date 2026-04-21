@@ -30,9 +30,6 @@ import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
 import com.google.android.gms.location.*
 import com.google.android.gms.common.api.ResolvableApiException
-import android.content.IntentSender
-import android.location.LocationManager
-import java.text.SimpleDateFormat
 import java.util.*
 
 class AbsensiActivity : AppCompatActivity() {

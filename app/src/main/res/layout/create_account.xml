@@ -130,11 +130,11 @@
                         android:paddingBottom="11dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Departemen -->
+                <!-- Posisi -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="DEPARTEMEN"
+                    android:text="POSISI"
                     android:textSize="10sp"
                     android:textStyle="bold"
                     android:textColor="#999999"
@@ -146,6 +146,46 @@
                     android:layout_marginTop="6dp"
                     android:layout_marginBottom="14dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:endIconMode="dropdown_menu"
+                    app:boxCornerRadiusTopStart="10dp"
+                    app:boxCornerRadiusTopEnd="10dp"
+                    app:boxCornerRadiusBottomStart="10dp"
+                    app:boxCornerRadiusBottomEnd="10dp"
+                    app:boxStrokeColor="@color/blue_bold"
+                    app:hintEnabled="false">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/etRole"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Pilih posisi"
+                        android:inputType="none"
+                        android:textSize="14sp"
+                        android:paddingStart="16dp"
+                        android:paddingTop="11dp"
+                        android:paddingBottom="11dp"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Kode Admin -->
+                <TextView
+                    android:id="@+id/tvAdminCodeLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="KODE ADMIN"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#999999"
+                    android:letterSpacing="0.08"
+                    android:visibility="gone" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutAdminCode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="14dp"
+                    android:visibility="gone"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     app:boxCornerRadiusTopStart="10dp"
                     app:boxCornerRadiusTopEnd="10dp"
                     app:boxCornerRadiusBottomStart="10dp"
@@ -154,14 +194,13 @@
                     app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etDepartment"
+                        android:id="@+id/etAdminCode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:imeOptions="actionDone"
-                        android:singleLine="true"
-                        android:hint="Masukkan departemen"
+                        android:hint="Masukkan kode admin"
                         android:textSize="14sp"
                         android:textColor="@color/black"
+                        android:inputType="textPassword"
                         android:paddingTop="11dp"
                         android:paddingBottom="11dp" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -204,6 +243,7 @@
 
                 <!-- Jam Kerja -->
                 <TextView
+                    android:id="@+id/tvJamKerjaLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="JAM KERJA"
@@ -213,6 +253,7 @@
                     android:letterSpacing="0.08" />
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tvDropDownIcon"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"

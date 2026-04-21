@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -24,17 +25,49 @@ class CreateAccountActivity : AppCompatActivity() {
 
         val etUsername = findViewById<EditText>(R.id.etUsername)
         val etEmail = findViewById<EditText>(R.id.etEmail)
-        val etDepartment = findViewById<EditText>(R.id.etDepartment)
+        val etRole = findViewById<AutoCompleteTextView>(R.id.etRole)
         val etPhoneNumber = findViewById<EditText>(R.id.etPhoneNumber)
         val etShift = findViewById<AutoCompleteTextView>(R.id.etShift)
         val etPassword = findViewById<EditText>(R.id.etPassword)
 
+        val etAdminCode = findViewById<EditText>(R.id.etAdminCode)
+
         val btnCreate = findViewById<Button>(R.id.btnCreate)
         val btnBack = findViewById<Button>(R.id.btnBack)
 
+        val roleOptions = listOf("Administrator", "Karyawan")
+
+        val adapter1 = object : ArrayAdapter<String>(this, R.layout.item_shift, roleOptions) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getView(position, convertView, parent) as TextView
+                val selectedText = etRole.text.toString()
+                view.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        if (view.text == selectedText) R.color.orange_bold else R.color.black
+                    )
+                )
+                return view
+            }
+
+            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getDropDownView(position, convertView, parent) as TextView
+                val selectedText = etRole.text.toString()
+                view.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        if (view.text == selectedText) R.color.orange_bold else R.color.black
+                    )
+                )
+                return view
+            }
+        }
+
+        etRole.setAdapter(adapter1)
+
         val shiftOptions = listOf("08:00 - 15:00", "15:00 - 22:00", "22:00 - 08:00")
 
-        val adapter = object : ArrayAdapter<String>(this, R.layout.item_shift, shiftOptions) {
+        val adapter2 = object : ArrayAdapter<String>(this, R.layout.item_shift, shiftOptions) {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = super.getView(position, convertView, parent) as TextView
                 val selectedText = etShift.text.toString()
@@ -60,19 +93,55 @@ class CreateAccountActivity : AppCompatActivity() {
             }
         }
 
-        etShift.setAdapter(adapter)
+        etShift.setAdapter(adapter2)
+
+        val layoutAdminCode = findViewById<View>(R.id.layoutAdminCode)
+        val tvAdminCodeLabel = findViewById<View>(R.id.tvAdminCodeLabel)
+        val tvJamKerjaLabel = findViewById<View>(R.id.tvJamKerjaLabel)
+        val tvDropDownIcon = findViewById<TextInputLayout>(R.id.tvDropDownIcon)
+
+        etRole.setOnItemClickListener { _, _, position, _ ->
+            val selectedRole = roleOptions[position]
+
+            if (selectedRole == "Administrator") {
+                layoutAdminCode.visibility = View.VISIBLE
+                tvAdminCodeLabel.visibility = View.VISIBLE
+                tvJamKerjaLabel.visibility = View.GONE
+                tvDropDownIcon.visibility = View.GONE
+
+                etShift.setText("")
+                etShift.visibility = View.GONE
+
+            } else {
+                layoutAdminCode.visibility = View.GONE
+                tvAdminCodeLabel.visibility = View.GONE
+                tvJamKerjaLabel.visibility = View.VISIBLE
+                tvDropDownIcon.visibility = View.VISIBLE
+
+                etShift.visibility = View.VISIBLE
+            }
+        }
 
         btnCreate.setOnClickListener {
 
             val username = etUsername.text.toString().trim()
             val email = etEmail.text.toString().trim()
-            val department = etDepartment.text.toString().trim()
+            val role = etRole.text.toString().trim()
             val phoneNumber = etPhoneNumber.text.toString().trim()
             val shift = etShift.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
-            if (username.isEmpty() || email.isEmpty() || department.isEmpty()
-                || phoneNumber.isEmpty() || shift.isEmpty() || password.isEmpty()
+            val adminCodeInput = etAdminCode.text.toString().trim()
+
+            if (role == "Administrator" && adminCodeInput.isEmpty()) {
+                Toast.makeText(this, "Kode admin wajib diisi", Toast.LENGTH_SHORT).show()
+                btnCreate.isEnabled = true
+                return@setOnClickListener
+            }
+
+            if (username.isEmpty() || email.isEmpty() || role.isEmpty()
+                || phoneNumber.isEmpty() || password.isEmpty()
+                || (role != "Administrator" && shift.isEmpty())
             ) {
                 Toast.makeText(this, "Harap mengisi seluruh kolom", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -90,58 +159,84 @@ class CreateAccountActivity : AppCompatActivity() {
 
             btnCreate.isEnabled = false
 
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener { task ->
+            if (role == "Administrator") {
 
-                    if (task.isSuccessful) {
+                db.collection("config")
+                    .document("admin")
+                    .get()
+                    .addOnSuccessListener { doc ->
 
-                        val userId = auth.currentUser?.uid
+                        val realCode = doc.getString("code")
 
-                        if (userId == null) {
-                            Toast.makeText(this, "User ID tidak ditemukan", Toast.LENGTH_SHORT).show()
+                        if (adminCodeInput != realCode) {
+                            Toast.makeText(this, "Kode admin salah", Toast.LENGTH_SHORT).show()
                             btnCreate.isEnabled = true
-                            return@addOnCompleteListener
+                            return@addOnSuccessListener
                         }
 
-                        val userMap = hashMapOf(
-                            "username" to username,
-                            "email" to email,
-                            "department" to department,
-                            "phoneNumber" to phoneNumber,
-                            "shift" to shift
-                        )
-
-                        db.collection("users")
-                            .document(userId)
-                            .set(userMap)
-                            .addOnSuccessListener {
-                                Toast.makeText(this, "Akun berhasil dibuat", Toast.LENGTH_SHORT).show()
-                                startActivity(Intent(this, LoginActivity::class.java))
-                                finish()
-                            }
-                            .addOnFailureListener {
-                                Toast.makeText(this, "Gagal simpan ke Firestore", Toast.LENGTH_SHORT).show()
-                                btnCreate.isEnabled = true
-                            }
-
-                    } else {
-                        val errorMessage = when {
-                            task.exception?.message?.contains("already in use") == true ->
-                                "Email sudah terdaftar"
-                            task.exception?.message?.contains("badly formatted") == true ->
-                                "Format email salah"
-                            else -> "Gagal membuat akun"
-                        }
-
-                        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+                        createUser(username, email, role, phoneNumber, shift, password)
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Gagal cek kode admin", Toast.LENGTH_SHORT).show()
                         btnCreate.isEnabled = true
                     }
-                }
+
+            } else {
+                createUser(username, email, role, phoneNumber, shift, password)
+            }
         }
 
         btnBack.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
+    }
+
+    private fun createUser(
+        username: String,
+        email: String,
+        role: String,
+        phoneNumber: String,
+        shift: String,
+        password: String
+    ) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+
+                if (task.isSuccessful) {
+
+                    val userId = auth.currentUser?.uid
+
+                    if (userId == null) return@addOnCompleteListener
+
+                    val userMap = hashMapOf(
+                        "username" to username,
+                        "email" to email,
+                        "role" to role,
+                        "phoneNumber" to phoneNumber,
+                        "shift" to if (role == "Administrator") null else shift
+                    )
+
+                    db.collection("users")
+                        .document(userId)
+                        .set(userMap)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Akun berhasil dibuat", Toast.LENGTH_SHORT).show()
+                            auth.signOut()
+                            startActivity(Intent(this, LoginActivity::class.java))
+                            finish()
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(this, "Gagal simpan ke Firestore", Toast.LENGTH_SHORT).show()
+                        }
+
+                } else {
+                    Toast.makeText(
+                        this,
+                        task.exception?.message ?: "Gagal membuat akun",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
     }
 }

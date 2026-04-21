@@ -24,20 +24,20 @@ class EditAccountActivity : AppCompatActivity() {
         val sharedPref = getSharedPreferences("USER_SESSION", MODE_PRIVATE)
 
         val dtProfile = findViewById<TextView>(R.id.tvAvatarInitials)
+        val dtEmail = findViewById<EditText>(R.id.dtEmail)
         val dtUsername = findViewById<EditText>(R.id.dtUsername)
-        val dtDepartment = findViewById<EditText>(R.id.dtDepartment)
         val dtPhoneNumber = findViewById<EditText>(R.id.dtPhoneNumber)
         val dtShift = findViewById<AutoCompleteTextView>(R.id.dtShift)
         val dtPassword = findViewById<EditText>(R.id.dtPassword)
 
+        val email = sharedPref.getString("EMAIL", "") ?: ""
         val username = sharedPref.getString("USERNAME", "") ?: ""
-        val department = sharedPref.getString("DEPARTMENT", "") ?: ""
         val phone = sharedPref.getString("PHONENUM", "") ?: ""
         val shift = sharedPref.getString("SHIFT", "") ?: ""
 
         dtProfile.text = username.firstOrNull()?.uppercase() ?: "?"
+        dtEmail.setText(email)
         dtUsername.setText(username)
-        dtDepartment.setText(department)
         dtPhoneNumber.setText(phone)
         dtShift.setText(shift, false)
 
@@ -76,13 +76,13 @@ class EditAccountActivity : AppCompatActivity() {
 
         btnEdit.setOnClickListener {
 
+            val newEmail = dtEmail.text.toString().trim()
             val newUsername = dtUsername.text.toString().trim()
-            val newDepartment = dtDepartment.text.toString().trim()
             val newPhone = dtPhoneNumber.text.toString().trim()
             val newShift = dtShift.text.toString().trim()
             val newPassword = dtPassword.text.toString().trim()
 
-            if (newUsername.isEmpty() || newDepartment.isEmpty() || newPhone.isEmpty() || newShift.isEmpty()) {
+            if (newEmail.isEmpty() || newUsername.isEmpty() || newPhone.isEmpty() || newShift.isEmpty()) {
                 Toast.makeText(this, "Harap mengisi seluruh kolom", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -95,8 +95,8 @@ class EditAccountActivity : AppCompatActivity() {
             }
 
             val userMap = mapOf(
+                "email" to newEmail,
                 "username" to newUsername,
-                "department" to newDepartment,
                 "phoneNumber" to newPhone,
                 "shift" to newShift
             )
@@ -111,8 +111,8 @@ class EditAccountActivity : AppCompatActivity() {
                     }
 
                     sharedPref.edit()
+                        .putString("EMAIL", newEmail)
                         .putString("USERNAME", newUsername)
-                        .putString("DEPARTMENT", newDepartment)
                         .putString("PHONENUM", newPhone)
                         .putString("SHIFT", newShift)
                         .apply()

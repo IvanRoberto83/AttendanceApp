@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:startDestination="@id/navigation_admin_home">
+
+    <fragment
+        android:id="@+id/navigation_admin_home"
+        android:name="com.example.absenywm.ui.admin_screen.AdminHomeFragment"
+        android:label="Home" />
+
+    <fragment
+        android:id="@+id/navigation_admin_list"
+        android:name="com.example.absenywm.ui.admin_screen.AdminListFragment"
+        android:label="List" />
+
+    <fragment
+        android:id="@+id/navigation_account"
+        android:name="com.example.absenywm.ui.account_screen.AccountFragment"
+        android:label="Account" />
+
+</navigation>
