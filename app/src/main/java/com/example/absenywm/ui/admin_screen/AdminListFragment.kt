@@ -77,9 +77,6 @@ class AdminListFragment : Fragment() {
         tvMonth.text = currentMonth
     }
 
-    // =========================
-    // LOAD KARYAWAN (🔥 REVISI)
-    // =========================
     private fun loadKaryawan() {
         karyawanList.clear()
         karyawanList.add("Semua Karyawan")
@@ -126,9 +123,6 @@ class AdminListFragment : Fragment() {
             }
     }
 
-    // =========================
-    // FILTER CHIP
-    // =========================
     private fun setupFilter() {
         chipGroup.setOnCheckedChangeListener { _, checkedId ->
 
@@ -145,9 +139,6 @@ class AdminListFragment : Fragment() {
         }
     }
 
-    // =========================
-    // LOAD ABSENSI
-    // =========================
     private fun loadAttendance() {
 
         db.collection("attendance")

@@ -25,11 +25,9 @@ class SplashActivity : AppCompatActivity() {
 
         if (isLogin && user != null) {
 
-            // 🔥 Kalau role sudah disimpan → langsung pakai
             if (!savedRole.isNullOrEmpty()) {
                 navigateByRole(savedRole)
             } else {
-                // 🔥 Fallback ambil dari Firestore
                 db.collection("users")
                     .document(user.uid)
                     .get()
@@ -37,7 +35,6 @@ class SplashActivity : AppCompatActivity() {
 
                         val role = doc.getString("role") ?: ""
 
-                        // simpan ke local biar next launch lebih cepat
                         sharedPref.edit().putString("ROLE", role).apply()
 
                         navigateByRole(role)

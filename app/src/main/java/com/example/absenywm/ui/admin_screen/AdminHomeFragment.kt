@@ -121,7 +121,6 @@ class AdminHomeFragment : Fragment() {
                     val status = doc.getString("status") ?: continue
                     val timestamp = doc.getTimestamp("timestamp")?.toDate() ?: continue
 
-                    // ===== HARI INI =====
                     if (timestamp.after(startOfDay) && timestamp.before(endOfDay)) {
                         when (status) {
                             "Hadir" -> todayHadir++
@@ -131,7 +130,6 @@ class AdminHomeFragment : Fragment() {
                         }
                     }
 
-                    // ===== BULAN INI =====
                     if (timestamp.after(startOfMonth)) {
                         when (status) {
                             "Hadir" -> monthHadir++
@@ -143,7 +141,6 @@ class AdminHomeFragment : Fragment() {
                     }
                 }
 
-                // ===== SET UI =====
                 tvTodayHadir.text = todayHadir.toString()
                 tvTodayTelat.text = todayTelat.toString()
                 tvTodayIzin.text = todayIzin.toString()
