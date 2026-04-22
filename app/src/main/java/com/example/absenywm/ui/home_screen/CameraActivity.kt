@@ -30,6 +30,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var btnBack: MaterialButton
 
     private var imageCapture: ImageCapture? = null
+    private var isCameraStarted = false
 
     private var status: String? = null
     private var tukarShift: Boolean = false
@@ -75,6 +76,32 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (allPermissionsGranted() && !isCameraStarted) {
+            startCamera()
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == REQUEST_CODE_CAMERA) {
+            if (grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            ) {
+                startCamera()
+            } else {
+                Toast.makeText(this, "Izin kamera diperlukan", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
+    }
+
     private fun setupUI() {
         val color = if (type == "masuk") {
             R.color.blue_bold
@@ -92,6 +119,8 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun startCamera() {
+        if (isCameraStarted) return
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
         cameraProviderFuture.addListener({
@@ -112,6 +141,8 @@ class CameraActivity : AppCompatActivity() {
                 preview,
                 imageCapture
             )
+
+            isCameraStarted = true
 
         }, ContextCompat.getMainExecutor(this))
     }
@@ -135,7 +166,6 @@ class CameraActivity : AppCompatActivity() {
             object : ImageCapture.OnImageSavedCallback {
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-
                     val compressedFile = compressImage(photoFile)
                     uploadToCloudinary(compressedFile)
                 }
@@ -261,5 +291,6 @@ class CameraActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         imageCapture = null
+        isCameraStarted = false
     }
 }

@@ -70,6 +70,44 @@ class ListViewModel : ViewModel() {
                     )
                 }
 
+                val tanggalSet = fullList.map { it.tanggal }.toSet()
+
+                val calendar = Calendar.getInstance()
+                calendar.set(Calendar.DAY_OF_MONTH, 1)
+
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+
+                val today = Calendar.getInstance()
+                today.set(Calendar.HOUR_OF_DAY, 0)
+                today.set(Calendar.MINUTE, 0)
+                today.set(Calendar.SECOND, 0)
+                today.set(Calendar.MILLISECOND, 0)
+
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+                while (calendar.get(Calendar.MONTH) == today.get(Calendar.MONTH)) {
+
+                    if (calendar.after(today)) break
+
+                    val currentDate = dateFormat.format(calendar.time)
+
+                    if (!tanggalSet.contains(currentDate)) {
+                        fullList.add(
+                            AbsenModel(
+                                currentDate,
+                                "masuk",
+                                "-",
+                                "Alpa"
+                            )
+                        )
+                    }
+
+                    calendar.add(Calendar.DAY_OF_MONTH, 1)
+                }
+
                 fullList.sortByDescending { it.tanggal }
 
                 _absenList.value = fullList

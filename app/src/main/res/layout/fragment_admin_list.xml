@@ -282,13 +282,6 @@
         android:gravity="center"
         android:visibility="gone">
 
-        <ImageView
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:src="@drawable/baseline_man_24"
-            android:layout_marginBottom="12dp"
-            app:tint="#CCCCCC" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
