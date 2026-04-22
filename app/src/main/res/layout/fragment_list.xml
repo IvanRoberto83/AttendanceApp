@@ -111,7 +111,7 @@
                     android:textColor="@drawable/chip_text_selector" />
 
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/chipAdminAlpa"
+                    android:id="@+id/chipAlpa"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Alpa"

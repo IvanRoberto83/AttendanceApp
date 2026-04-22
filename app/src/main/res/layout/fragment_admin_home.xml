@@ -307,7 +307,7 @@
                         android:src="@drawable/outline_heart"
                         android:layout_marginStart="10dp"
                         android:layout_marginEnd="20dp"
-                        app:tint="#2E7D32" />
+                        app:tint="#2EAA6E" />
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -319,7 +319,7 @@
                             android:text="0"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="#2E7D32" />
+                            android:textColor="#2EAA6E" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"

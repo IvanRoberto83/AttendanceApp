@@ -33,6 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
+            android:layout_marginBottom="5dp"
             android:textSize="13sp"
             android:textColor="#888888"
             tools:text="April 2026" />
@@ -58,6 +59,8 @@
                 android:layout_height="wrap_content"
                 android:inputType="none"
                 android:textSize="14sp"
+                android:paddingStart="18dp"
+                android:paddingEnd="12dp"
                 android:textColor="@color/black"
                 tools:text="Semua Karyawan" />
 
@@ -72,6 +75,7 @@
         android:layout_height="wrap_content"
         android:background="@color/white"
         android:orientation="horizontal"
+        android:paddingTop="12dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="10dp"
@@ -197,6 +201,7 @@
                     android:layout_height="wrap_content"
                     android:text="Semua"
                     android:checked="true"
+                    app:checkedIconTint="@color/white"
                     style="@style/Widget.MaterialComponents.Chip.Filter"
                     app:chipBackgroundColor="@drawable/chip_bg_selector"
                     android:textColor="@drawable/chip_text_selector" />
@@ -206,6 +211,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Hadir"
+                    app:checkedIconTint="@color/white"
                     style="@style/Widget.MaterialComponents.Chip.Filter"
                     app:chipBackgroundColor="@drawable/chip_bg_selector"
                     android:textColor="@drawable/chip_text_selector" />
@@ -215,6 +221,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Telat"
+                    app:checkedIconTint="@color/white"
                     style="@style/Widget.MaterialComponents.Chip.Filter"
                     app:chipBackgroundColor="@drawable/chip_bg_selector"
                     android:textColor="@drawable/chip_text_selector" />
@@ -224,6 +231,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Sakit"
+                    app:checkedIconTint="@color/white"
                     style="@style/Widget.MaterialComponents.Chip.Filter"
                     app:chipBackgroundColor="@drawable/chip_bg_selector"
                     android:textColor="@drawable/chip_text_selector" />
@@ -233,6 +241,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Izin"
+                    app:checkedIconTint="@color/white"
                     style="@style/Widget.MaterialComponents.Chip.Filter"
                     app:chipBackgroundColor="@drawable/chip_bg_selector"
                     android:textColor="@drawable/chip_text_selector" />
@@ -242,6 +251,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Alpa"
+                    app:checkedIconTint="@color/white"
                     style="@style/Widget.MaterialComponents.Chip.Filter"
                     app:chipBackgroundColor="@drawable/chip_bg_selector"
                     android:textColor="@drawable/chip_text_selector" />

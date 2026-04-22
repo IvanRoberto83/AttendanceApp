@@ -4,10 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -53,8 +51,8 @@ class AdminListFragment : Fragment() {
 
         initView(view)
         setupMonthLabel()
-        loadKaryawan()
         setupFilter()
+        loadKaryawan()
     }
 
     private fun initView(view: View) {
@@ -80,7 +78,7 @@ class AdminListFragment : Fragment() {
     }
 
     // =========================
-    // LOAD KARYAWAN
+    // LOAD KARYAWAN (🔥 REVISI)
     // =========================
     private fun loadKaryawan() {
         karyawanList.clear()
@@ -98,23 +96,33 @@ class AdminListFragment : Fragment() {
                     }
                 }
 
-                val adapter = ArrayAdapter(
-                    requireContext(),
-                    android.R.layout.simple_dropdown_item_1line,
-                    karyawanList
-                )
-
-                actvKaryawan.setAdapter(adapter)
-
-                actvKaryawan.setOnItemClickListener { _, _, position, _ ->
-                    selectedUser = if (position == 0) {
-                        "ALL"
-                    } else {
-                        karyawanList[position]
+                val adapter = object : ArrayAdapter<String>(requireContext(), R.layout.item_dropdown_karyawan, karyawanList) {
+                    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                        val view = super.getView(position, convertView, parent) as TextView
+                        val selectedText = actvKaryawan.text.toString()
+                        view.setTextColor(
+                            ContextCompat.getColor(
+                                context,
+                                if (view.text == selectedText) R.color.orange_bold else R.color.black
+                            )
+                        )
+                        return view
                     }
 
-                    loadAttendance()
+                    override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+                        val view = super.getDropDownView(position, convertView, parent) as TextView
+                        val selectedText = actvKaryawan.text.toString()
+                        view.setTextColor(
+                            ContextCompat.getColor(
+                                context,
+                                if (view.text == selectedText) R.color.orange_bold else R.color.black
+                            )
+                        )
+                        return view
+                    }
                 }
+
+                actvKaryawan.setAdapter(adapter)
             }
     }
 
@@ -157,10 +165,8 @@ class AdminListFragment : Fragment() {
                     val nama = doc.getString("username")
                     val status = doc.getString("status")
 
-                    // FILTER USER
                     if (selectedUser != "ALL" && selectedUser != nama) continue
 
-                    // FILTER STATUS
                     if (selectedFilter != "ALL" &&
                         !selectedFilter.equals(status, ignoreCase = true)
                     ) continue
@@ -180,9 +186,6 @@ class AdminListFragment : Fragment() {
             }
     }
 
-    // =========================
-    // UPDATE UI
-    // =========================
     private fun updateStat(hadir: Int, telat: Int, izin: Int, alpa: Int) {
         tvStatHadir.text = hadir.toString()
         tvStatTelat.text = telat.toString()

@@ -74,6 +74,7 @@ class ListFragment : Fragment() {
                 binding.chipTelat.id -> "Telat"
                 binding.chipSakit.id -> "Sakit"
                 binding.chipIzin.id -> "Izin"
+                binding.chipAlpa.id -> "Alpa"
                 else -> "Semua"
             }
 
