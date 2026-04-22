@@ -80,88 +80,104 @@ class AdminHomeFragment : Fragment() {
         tvAdminDate.text = sdf.format(Date())
     }
 
+    private fun getCurrentDayOfMonth(): Int {
+        return Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+    }
+
     private fun loadAttendanceData() {
 
-        val startOfDay = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-        }.time
+        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentMonth = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
 
-        val endOfDay = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 23)
-            set(Calendar.MINUTE, 59)
-            set(Calendar.SECOND, 59)
-        }.time
-
-        val startOfMonth = Calendar.getInstance().apply {
-            set(Calendar.DAY_OF_MONTH, 1)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-        }.time
-
-        db.collection("attendance")
+        db.collection("users")
+            .whereEqualTo("role", "Karyawan")
             .get()
-            .addOnSuccessListener { result ->
+            .addOnSuccessListener { users ->
+
+                var totalUser = users.size()
 
                 var todayHadir = 0
                 var todayTelat = 0
                 var todayIzin = 0
-                var todayAlpa = 0
 
                 var monthHadir = 0
-                var monthSakit = 0
-                var monthIzin = 0
                 var monthTelat = 0
-                var monthAlpa = 0
+                var monthIzin = 0
+                var monthSakit = 0
 
-                for (doc in result) {
+                var processedUser = 0
 
-                    val status = doc.getString("status") ?: continue
-                    val timestamp = doc.getTimestamp("timestamp")?.toDate() ?: continue
+                for (user in users) {
 
-                    if (timestamp.after(startOfDay) && timestamp.before(endOfDay)) {
-                        when (status) {
-                            "Hadir" -> todayHadir++
-                            "Telat" -> todayTelat++
-                            "Izin", "Sakit" -> todayIzin++
-                            "Alpa" -> todayAlpa++
+                    val userId = user.id
+
+                    db.collection("absensi")
+                        .document(userId)
+                        .collection("records")
+                        .get()
+                        .addOnSuccessListener { records ->
+
+                            var isTodayAbsent = true
+
+                            for (doc in records) {
+
+                                val tanggal = doc.getString("tanggal") ?: continue
+                                val status = doc.getString("status") ?: continue
+
+                                if (tanggal == todayStr) {
+                                    isTodayAbsent = false
+
+                                    when (status) {
+                                        "Hadir" -> todayHadir++
+                                        "Telat" -> todayTelat++
+                                        "Izin", "Sakit" -> todayIzin++
+                                    }
+                                }
+
+                                if (tanggal.startsWith(currentMonth)) {
+                                    when (status) {
+                                        "Hadir" -> monthHadir++
+                                        "Telat" -> monthTelat++
+                                        "Izin" -> monthIzin++
+                                        "Sakit" -> monthSakit++
+                                    }
+                                }
+                            }
+
+                            if (isTodayAbsent) {
+                                tvTodayAlpa.text =
+                                    ((tvTodayAlpa.text.toString().toIntOrNull() ?: 0) + 1).toString()
+                            }
+
+                            processedUser++
+
+                            if (processedUser == totalUser) {
+
+                                val todayAlpa = totalUser - (todayHadir + todayTelat + todayIzin)
+
+                                val monthAlpa = (totalUser * getCurrentDayOfMonth()) -
+                                        (monthHadir + monthTelat + monthIzin + monthSakit)
+
+                                tvTodayHadir.text = todayHadir.toString()
+                                tvTodayTelat.text = todayTelat.toString()
+                                tvTodayIzin.text = todayIzin.toString()
+                                tvTodayAlpa.text = todayAlpa.toString()
+
+                                tvMonthHadir.text = monthHadir.toString()
+                                tvMonthSakit.text = monthSakit.toString()
+                                tvMonthIzin.text = monthIzin.toString()
+                                tvMonthTelat.text = monthTelat.toString()
+                                tvMonthAlpa.text = monthAlpa.toString()
+                                tvMonthTukarShift.text = "0"
+
+                                val total = monthHadir + monthSakit + monthIzin + monthAlpa
+                                val persen = if (total > 0) (monthHadir * 100 / total) else 0
+
+                                progressKehadiran.progress = persen
+                                tvPersentaseHadir.text = "$persen%"
+                            }
                         }
-                    }
-
-                    if (timestamp.after(startOfMonth)) {
-                        when (status) {
-                            "Hadir" -> monthHadir++
-                            "Telat" -> monthTelat++
-                            "Izin" -> monthIzin++
-                            "Sakit" -> monthSakit++
-                            "Alpa" -> monthAlpa++
-                        }
-                    }
                 }
-
-                tvTodayHadir.text = todayHadir.toString()
-                tvTodayTelat.text = todayTelat.toString()
-                tvTodayIzin.text = todayIzin.toString()
-                tvTodayAlpa.text = todayAlpa.toString()
-
-                tvMonthHadir.text = monthHadir.toString()
-                tvMonthSakit.text = monthSakit.toString()
-                tvMonthIzin.text = monthIzin.toString()
-                tvMonthTelat.text = monthTelat.toString()
-                tvMonthAlpa.text = monthAlpa.toString()
-                tvMonthTukarShift.text = "0"
-
-                val total = monthHadir + monthSakit + monthIzin + monthAlpa
-                val persen = if (total > 0) (monthHadir * 100 / total) else 0
-
-                progressKehadiran.progress = persen
-                tvPersentaseHadir.text = "$persen%"
-
-            }
-            .addOnFailureListener {
-                tvTodayHadir.text = "0"
             }
     }
 }

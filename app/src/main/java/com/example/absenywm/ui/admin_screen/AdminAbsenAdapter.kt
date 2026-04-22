@@ -1,29 +1,33 @@
-package com.example.absenywm.ui.list_screen
+package com.example.absenywm.ui.admin_screen
 
 import android.content.Intent
 import android.net.Uri
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.absenywm.R
-import com.example.absenywm.databinding.ItemAttendanceBinding
-import java.text.SimpleDateFormat
-import java.util.*
 
-class AbsenAdapter(private val list: MutableList<AbsenModel>) :
-    RecyclerView.Adapter<AbsenAdapter.ViewHolder>() {
+class AdminAbsenAdapter(
+    private val list: MutableList<AdminListViewModel>
+) : RecyclerView.Adapter<AdminAbsenAdapter.ViewHolder>() {
 
-    class ViewHolder(val binding: ItemAttendanceBinding) :
-        RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val tvNama: TextView = itemView.findViewById(R.id.tvNama)
+        val tvTanggal: TextView = itemView.findViewById(R.id.tvTanggal)
+        val tvType: TextView = itemView.findViewById(R.id.tvType)
+        val tvWaktu: TextView = itemView.findViewById(R.id.tvWaktu)
+        val tvStatus: TextView = itemView.findViewById(R.id.tvStatus)
+        val tvLinkFoto: TextView = itemView.findViewById(R.id.tvLinkFoto)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemAttendanceBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return ViewHolder(binding)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_admin_attendance, parent, false)
+        return ViewHolder(view)
     }
 
     override fun getItemCount(): Int = list.size
@@ -31,29 +35,25 @@ class AbsenAdapter(private val list: MutableList<AbsenModel>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
         val item = list[position]
-        val isAlpa = item.status.equals("Alpa", true)
 
-        holder.binding.tvTanggal.text = formatTanggal(item.tanggal)
-
-        holder.binding.tvType.text = if (isAlpa) {
+        holder.tvNama.text = item.nama
+        holder.tvTanggal.text = item.tanggal
+        holder.tvType.text = if (item.status == "Alpa") {
             "Tidak melakukan absensi"
         } else {
             item.type
         }
-
-        holder.binding.tvWaktu.text = item.waktu
-
-        holder.binding.tvStatus.text = if (isAlpa) {
+        holder.tvWaktu.text = item.waktu
+        holder.tvStatus.text = if (item.status == "Alpa") {
             "Alpa"
         } else {
             item.status
         }
+        holder.tvLinkFoto.text = item.foto ?: "Tidak ada foto"
 
-        holder.binding.tvLinkFoto.text = item.foto ?: "Tidak ada foto"
-
-        // klik link foto (AMAN)
-        holder.binding.tvLinkFoto.setOnClickListener {
+        holder.tvLinkFoto.setOnClickListener {
             val url = item.foto
+
             if (!url.isNullOrEmpty()) {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 holder.itemView.context.startActivity(intent)
@@ -75,23 +75,16 @@ class AbsenAdapter(private val list: MutableList<AbsenModel>) :
             else -> R.drawable.bg_status_hadir
         }
 
-        holder.binding.tvStatus.setBackgroundResource(bg)
+        holder.tvStatus.setBackgroundResource(bg)
+
+        holder.tvStatus.setTextColor(
+            ContextCompat.getColor(holder.itemView.context, R.color.white)
+        )
     }
 
-    fun updateData(newList: List<AbsenModel>) {
+    fun updateData(newList: List<AdminListViewModel>) {
         list.clear()
         list.addAll(newList)
         notifyDataSetChanged()
-    }
-
-    private fun formatTanggal(date: String): String {
-        return try {
-            val input = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val output = SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
-            val parsed = input.parse(date)
-            output.format(parsed!!)
-        } catch (e: Exception) {
-            date
-        }
     }
 }

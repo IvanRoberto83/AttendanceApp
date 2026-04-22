@@ -30,8 +30,11 @@ class ListFragment : Fragment() {
         viewModel = ViewModelProvider(this)[ListViewModel::class.java]
 
         adapter = AbsenAdapter(mutableListOf())
-        binding.rvAttendance.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvAttendance.adapter = adapter
+
+        binding.rvAttendance.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@ListFragment.adapter
+        }
 
         setupMonth()
         setupObserver()

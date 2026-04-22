@@ -289,14 +289,6 @@
             android:textSize="15sp"
             android:textColor="#AAAAAA" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Pilih karyawan untuk melihat riwayat"
-            android:textSize="12sp"
-            android:textColor="#CCCCCC" />
-
     </LinearLayout>
 
     <!-- Hidden helper -->

@@ -1,6 +1,7 @@
-package com.example.absenywm.ui.list_screen
+package com.example.absenywm.ui.admin_screen
 
-data class AbsenModel(
+data class AdminListViewModel(
+    val nama: String,
     val tanggal: String,
     val type: String,
     val waktu: String,

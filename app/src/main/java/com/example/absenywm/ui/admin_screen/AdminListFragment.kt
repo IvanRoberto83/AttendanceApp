@@ -17,6 +17,9 @@ import java.util.*
 
 class AdminListFragment : Fragment() {
 
+    private lateinit var adapter: AdminAbsenAdapter
+    private val listData = mutableListOf<AdminListViewModel>()
+
     private lateinit var db: FirebaseFirestore
 
     private lateinit var actvKaryawan: AutoCompleteTextView
@@ -36,11 +39,7 @@ class AdminListFragment : Fragment() {
     private var selectedUser = "ALL"
     private var selectedFilter = "ALL"
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_admin_list, container, false)
     }
 
@@ -69,6 +68,9 @@ class AdminListFragment : Fragment() {
         chipGroup = view.findViewById(R.id.chipGroupAdminFilter)
 
         rvAttendance.layoutManager = LinearLayoutManager(requireContext())
+
+        adapter = AdminAbsenAdapter(listData)
+        rvAttendance.adapter = adapter
     }
 
     private fun setupMonthLabel() {
@@ -93,7 +95,11 @@ class AdminListFragment : Fragment() {
                     }
                 }
 
-                val adapter = object : ArrayAdapter<String>(requireContext(), R.layout.item_dropdown_karyawan, karyawanList) {
+                val adapter = object : ArrayAdapter<String>(
+                    requireContext(),
+                    R.layout.item_dropdown_karyawan,
+                    karyawanList
+                ) {
                     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                         val view = super.getView(position, convertView, parent) as TextView
                         val selectedText = actvKaryawan.text.toString()
@@ -120,6 +126,16 @@ class AdminListFragment : Fragment() {
                 }
 
                 actvKaryawan.setAdapter(adapter)
+
+                actvKaryawan.setText(karyawanList[0], false)
+                selectedUser = "ALL"
+
+                actvKaryawan.setOnItemClickListener { _, _, position, _ ->
+                    selectedUser = if (position == 0) "ALL" else karyawanList[position]
+                    loadAttendance()
+                }
+
+                loadAttendance()
             }
     }
 
@@ -141,39 +157,117 @@ class AdminListFragment : Fragment() {
 
     private fun loadAttendance() {
 
-        db.collection("attendance")
+        val currentMonth = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
+        val today = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+
+        listData.clear()
+
+        var hadir = 0
+        var telat = 0
+        var izin = 0
+        var alpa = 0
+
+        db.collection("users")
+            .whereEqualTo("role", "Karyawan")
             .get()
-            .addOnSuccessListener { result ->
+            .addOnSuccessListener { users ->
 
-                var hadir = 0
-                var telat = 0
-                var izin = 0
-                var alpa = 0
-                var total = 0
+                var processedUser = 0
+                val totalUser = users.size()
 
-                for (doc in result) {
+                for (user in users) {
 
-                    val nama = doc.getString("username")
-                    val status = doc.getString("status")
+                    val userId = user.id
+                    val username = user.getString("username") ?: ""
 
-                    if (selectedUser != "ALL" && selectedUser != nama) continue
-
-                    if (selectedFilter != "ALL" &&
-                        !selectedFilter.equals(status, ignoreCase = true)
-                    ) continue
-
-                    total++
-
-                    when (status?.lowercase()) {
-                        "hadir" -> hadir++
-                        "telat" -> telat++
-                        "izin", "sakit" -> izin++
-                        "alpa" -> alpa++
+                    if (selectedUser != "ALL" && selectedUser != username) {
+                        processedUser++
+                        continue
                     }
-                }
 
-                updateStat(hadir, telat, izin, alpa)
-                toggleEmpty(total == 0)
+                    db.collection("absensi")
+                        .document(userId)
+                        .collection("records")
+                        .get()
+                        .addOnSuccessListener { records ->
+
+                            val tanggalSet = mutableSetOf<String>()
+
+                            for (doc in records) {
+
+                                val tanggal = doc.getString("tanggal") ?: continue
+                                if (!tanggal.startsWith(currentMonth)) continue
+
+                                val status = doc.getString("status") ?: continue
+                                val type = doc.getString("type") ?: "-"
+                                val waktu = doc.getString("waktu") ?: "-"
+                                val foto = doc.getString("foto")
+
+                                tanggalSet.add(tanggal)
+
+                                when (status.lowercase()) {
+                                    "hadir" -> hadir++
+                                    "telat" -> telat++
+                                    "izin", "sakit" -> izin++
+                                }
+
+                                if (selectedFilter == "ALL" || status.equals(selectedFilter, true)) {
+                                    listData.add(
+                                        AdminListViewModel(
+                                            username,
+                                            tanggal,
+                                            type,
+                                            waktu,
+                                            status,
+                                            foto
+                                        )
+                                    )
+                                }
+                            }
+
+                            val calendar = Calendar.getInstance()
+                            calendar.set(Calendar.DAY_OF_MONTH, 1)
+
+                            while (calendar.get(Calendar.DAY_OF_MONTH) <= today) {
+
+                                val tanggal = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                    .format(calendar.time)
+
+                                if (!tanggalSet.contains(tanggal)) {
+
+                                    alpa++
+
+                                    if (selectedFilter == "ALL" || selectedFilter == "Alpa") {
+                                        listData.add(
+                                            AdminListViewModel(
+                                                username,
+                                                tanggal,
+                                                "Tidak Melakukan Absensi",
+                                                "-",
+                                                "Alpa",
+                                                null
+                                            )
+                                        )
+                                    }
+                                }
+
+                                calendar.add(Calendar.DAY_OF_MONTH, 1)
+                            }
+
+                            processedUser++
+
+                            if (processedUser == totalUser) {
+
+                                listData.sortByDescending { it.tanggal }
+
+                                adapter.notifyDataSetChanged()
+
+                                updateStat(hadir, telat, izin, alpa)
+
+                                toggleEmpty(listData.isEmpty())
+                            }
+                        }
+                }
             }
     }
 

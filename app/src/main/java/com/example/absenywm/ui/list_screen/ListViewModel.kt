@@ -44,6 +44,7 @@ class ListViewModel : ViewModel() {
                     val status = doc.getString("status") ?: "-"
                     val waktuRaw = doc.getString("waktu") ?: "-"
                     val type = doc.getString("type") ?: "-"
+                    val foto = doc.getString("foto") // ✅ FIX TAMBAH FOTO
 
                     val tukarShift = doc.getBoolean("tukarShift") ?: false
                     val shiftPengganti = doc.getString("shiftPengganti")
@@ -57,7 +58,7 @@ class ListViewModel : ViewModel() {
                     }
 
                     val finalStatus = if (
-                        type == "masuk" &&
+                        type.equals("masuk", true) &&
                         isLate(shiftDipakai, waktuRaw)
                     ) {
                         "Telat"
@@ -66,31 +67,27 @@ class ListViewModel : ViewModel() {
                     }
 
                     fullList.add(
-                        AbsenModel(tanggal, type, waktuRaw, finalStatus)
+                        AbsenModel(
+                            tanggal,
+                            type,
+                            waktuRaw,
+                            finalStatus,
+                            foto // ✅ FIX
+                        )
                     )
                 }
 
+                // 🔥 GENERATE ALPA
                 val tanggalSet = fullList.map { it.tanggal }.toSet()
 
                 val calendar = Calendar.getInstance()
                 calendar.set(Calendar.DAY_OF_MONTH, 1)
 
-                calendar.set(Calendar.HOUR_OF_DAY, 0)
-                calendar.set(Calendar.MINUTE, 0)
-                calendar.set(Calendar.SECOND, 0)
-                calendar.set(Calendar.MILLISECOND, 0)
-
                 val today = Calendar.getInstance()
-                today.set(Calendar.HOUR_OF_DAY, 0)
-                today.set(Calendar.MINUTE, 0)
-                today.set(Calendar.SECOND, 0)
-                today.set(Calendar.MILLISECOND, 0)
 
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-                while (calendar.get(Calendar.MONTH) == today.get(Calendar.MONTH)) {
-
-                    if (calendar.after(today)) break
+                while (calendar.get(Calendar.DAY_OF_MONTH) <= today.get(Calendar.DAY_OF_MONTH)) {
 
                     val currentDate = dateFormat.format(calendar.time)
 
@@ -100,7 +97,8 @@ class ListViewModel : ViewModel() {
                                 currentDate,
                                 "masuk",
                                 "-",
-                                "Alpa"
+                                "Alpa",
+                                null // ✅ FIX
                             )
                         )
                     }
@@ -108,6 +106,7 @@ class ListViewModel : ViewModel() {
                     calendar.add(Calendar.DAY_OF_MONTH, 1)
                 }
 
+                // 🔥 SORT
                 fullList.sortByDescending { it.tanggal }
 
                 _absenList.value = fullList
@@ -120,12 +119,13 @@ class ListViewModel : ViewModel() {
         val filtered = if (filter == "Semua") {
             fullList
         } else {
-            fullList.filter { it.status == filter }
+            fullList.filter { it.status.equals(filter, true) }
         }
 
         _absenList.value = filtered
         _isEmpty.value = filtered.isEmpty()
     }
+
     private fun isLate(shift: String, waktu: String): Boolean {
         return try {
 
@@ -138,12 +138,13 @@ class ListViewModel : ViewModel() {
             cal.time = jamShift!!
             cal.add(Calendar.MINUTE, 30)
 
-            jamAbsen!!.after(cal.time)
+            jamAbsen?.after(cal.time) ?: false
 
         } catch (e: Exception) {
             false
         }
     }
+
     private fun extractStartTime(shift: String?): String {
         return try {
             shift?.split("-")?.get(0)?.trim() ?: "08:00"
