@@ -15,7 +15,7 @@
 
     <fragment
         android:id="@+id/navigation_account"
-        android:name="com.example.absenywm.ui.account_screen.AccountFragment"
+        android:name="com.example.absenywm.ui.admin_screen.AdminAccountFragment"
         android:label="Account" />
 
 </navigation>

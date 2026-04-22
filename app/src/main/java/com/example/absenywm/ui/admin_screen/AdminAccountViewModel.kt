@@ -1,0 +1,55 @@
+package com.example.absenywm.ui.admin_screen
+
+import android.content.Context
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+
+class AdminAccountViewModel : ViewModel() {
+    val email = MutableLiveData<String>()
+    val username = MutableLiveData<String>()
+    val role = MutableLiveData<String>()
+    val phoneNumber = MutableLiveData<String>()
+
+    fun loadUserData(context: android.content.Context) {
+        val pref = context.getSharedPreferences("USER_SESSION", android.content.Context.MODE_PRIVATE)
+
+        email.value = pref.getString("EMAIL","")?: ""
+        username.value = pref.getString("USERNAME", "") ?: ""
+        role.value = pref.getString("ROLE", "") ?: ""
+        phoneNumber.value = pref.getString("PHONENUM", "") ?: ""
+    }
+
+    fun deleteAccount(context: Context, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val user = FirebaseAuth.getInstance().currentUser
+
+        if (user == null) {
+            onError("User tidak ditemukan")
+            return
+        }
+
+        val uid = user.uid
+        val db = FirebaseFirestore.getInstance()
+
+        db.collection("users")
+            .document(uid)
+            .delete()
+            .addOnSuccessListener {
+
+                user.delete()
+                    .addOnSuccessListener {
+                        onSuccess()
+                    }
+                    .addOnFailureListener {
+                        it.printStackTrace()
+                        onError("Auth error: ${it.message}")
+                    }
+
+            }
+            .addOnFailureListener {
+                it.printStackTrace()
+                onError("Firestore error: ${it.message}")
+            }
+    }
+}

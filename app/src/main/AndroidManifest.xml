@@ -40,6 +40,7 @@
         <activity android:name=".MainActivity"/>
         <activity android:name=".CreateAccountActivity"/>
         <activity android:name=".EditAccountActivity" />
+        <activity android:name=".EditAdminAccountActivity" />
     </application>
 
 </manifest>

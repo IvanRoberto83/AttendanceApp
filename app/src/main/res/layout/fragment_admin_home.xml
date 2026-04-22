@@ -98,14 +98,14 @@
                             android:text="0"
                             android:textSize="22sp"
                             android:textStyle="bold"
-                            android:textColor="#2E7D32" />
+                            android:textColor="@color/blue_bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Hadir"
                             android:textSize="11sp"
-                            android:textColor="#888888" />
+                            android:textColor="@color/blue_bold" />
                     </LinearLayout>
 
                     <!-- Telat -->
@@ -130,7 +130,7 @@
                             android:layout_height="wrap_content"
                             android:text="Telat"
                             android:textSize="11sp"
-                            android:textColor="#888888" />
+                            android:textColor="@color/orange_bold" />
                     </LinearLayout>
 
                     <!-- Izin/Sakit -->
@@ -155,7 +155,7 @@
                             android:layout_height="wrap_content"
                             android:text="Izin/Sakit"
                             android:textSize="11sp"
-                            android:textColor="#888888" />
+                            android:textColor="#9B59B6" />
                     </LinearLayout>
 
                     <!-- Alpa -->
@@ -180,7 +180,7 @@
                             android:layout_height="wrap_content"
                             android:text="Alpa"
                             android:textSize="11sp"
-                            android:textColor="#888888" />
+                            android:textColor="#E24B4A" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -262,7 +262,7 @@
                         android:src="@drawable/baseline_check_circle_outline_24"
                         android:layout_marginStart="10dp"
                         android:layout_marginEnd="20dp"
-                        app:tint="#2E7D32" />
+                        app:tint="@color/blue_bold" />
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -274,11 +274,11 @@
                             android:text="0"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="#2E7D32" />
+                            android:textColor="@color/blue_bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Hadir"
+                            android:text="Hadir"
                             android:textSize="11sp"
                             android:textColor="#888888" />
                     </LinearLayout>
@@ -307,7 +307,7 @@
                         android:src="@drawable/outline_heart"
                         android:layout_marginStart="10dp"
                         android:layout_marginEnd="20dp"
-                        app:tint="#1565C0" />
+                        app:tint="#2E7D32" />
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -319,11 +319,11 @@
                             android:text="0"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="#1565C0" />
+                            android:textColor="#2E7D32" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Sakit"
+                            android:text="Sakit"
                             android:textSize="11sp"
                             android:textColor="#888888" />
                     </LinearLayout>
@@ -380,7 +380,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Izin"
+                            android:text="Izin"
                             android:textSize="11sp"
                             android:textColor="#888888" />
                     </LinearLayout>
@@ -425,7 +425,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Tukar Shift"
+                            android:text="Tukar Shift"
                             android:textSize="11sp"
                             android:textColor="#888888" />
                     </LinearLayout>
@@ -482,7 +482,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Telat"
+                            android:text="Telat"
                             android:textSize="11sp"
                             android:textColor="#888888" />
                     </LinearLayout>
@@ -527,7 +527,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Alpa"
+                            android:text="Alpa"
                             android:textSize="11sp"
                             android:textColor="#888888" />
                     </LinearLayout>
