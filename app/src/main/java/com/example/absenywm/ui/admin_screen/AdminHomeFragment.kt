@@ -94,7 +94,7 @@ class AdminHomeFragment : Fragment() {
             .get()
             .addOnSuccessListener { users ->
 
-                var totalUser = users.size()
+                val totalUser = users.size()
 
                 var todayHadir = 0
                 var todayTelat = 0
@@ -145,18 +145,19 @@ class AdminHomeFragment : Fragment() {
                             }
 
                             if (isTodayAbsent) {
-                                tvTodayAlpa.text =
-                                    ((tvTodayAlpa.text.toString().toIntOrNull() ?: 0) + 1).toString()
+                                todayIzin += 0
                             }
 
                             processedUser++
 
                             if (processedUser == totalUser) {
 
-                                val todayAlpa = totalUser - (todayHadir + todayTelat + todayIzin)
+                                val todayAlpa =
+                                    totalUser - (todayHadir + todayTelat + todayIzin)
 
-                                val monthAlpa = (totalUser * getCurrentDayOfMonth()) -
-                                        (monthHadir + monthTelat + monthIzin + monthSakit)
+                                val monthAlpa =
+                                    (totalUser * getCurrentDayOfMonth()) -
+                                            (monthHadir + monthTelat + monthIzin + monthSakit)
 
                                 tvTodayHadir.text = todayHadir.toString()
                                 tvTodayTelat.text = todayTelat.toString()
@@ -170,8 +171,14 @@ class AdminHomeFragment : Fragment() {
                                 tvMonthAlpa.text = monthAlpa.toString()
                                 tvMonthTukarShift.text = "0"
 
-                                val total = monthHadir + monthSakit + monthIzin + monthAlpa
-                                val persen = if (total > 0) (monthHadir * 100 / total) else 0
+                                val hadirValid = todayHadir + todayTelat
+                                val totalAktif = totalUser - todayIzin
+
+                                val persen = if (totalAktif > 0) {
+                                    (hadirValid * 100 / totalAktif)
+                                } else {
+                                    0
+                                }
 
                                 progressKehadiran.progress = persen
                                 tvPersentaseHadir.text = "$persen%"

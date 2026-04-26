@@ -51,7 +51,6 @@ class AbsenAdapter(private val list: MutableList<AbsenModel>) :
 
         holder.binding.tvLinkFoto.text = item.foto ?: "Tidak ada foto"
 
-        // klik link foto (AMAN)
         holder.binding.tvLinkFoto.setOnClickListener {
             val url = item.foto
             if (!url.isNullOrEmpty()) {

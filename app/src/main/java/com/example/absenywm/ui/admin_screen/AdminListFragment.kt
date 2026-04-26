@@ -69,7 +69,10 @@ class AdminListFragment : Fragment() {
 
         rvAttendance.layoutManager = LinearLayoutManager(requireContext())
 
-        adapter = AdminAbsenAdapter(listData)
+        adapter = AdminAbsenAdapter(listData) {
+            loadAttendance()
+        }
+
         rvAttendance.adapter = adapter
     }
 
@@ -156,6 +159,8 @@ class AdminListFragment : Fragment() {
     }
 
     private fun loadAttendance() {
+        listData.clear()
+        adapter.notifyDataSetChanged()
 
         val currentMonth = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
         val today = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
@@ -214,6 +219,8 @@ class AdminListFragment : Fragment() {
                                 if (selectedFilter == "ALL" || status.equals(selectedFilter, true)) {
                                     listData.add(
                                         AdminListViewModel(
+                                            userId,
+                                            doc.id,
                                             username,
                                             tanggal,
                                             type,
@@ -240,6 +247,8 @@ class AdminListFragment : Fragment() {
                                     if (selectedFilter == "ALL" || selectedFilter == "Alpa") {
                                         listData.add(
                                             AdminListViewModel(
+                                                userId,
+                                                "ALPA",
                                                 username,
                                                 tanggal,
                                                 "Tidak Melakukan Absensi",

@@ -44,7 +44,7 @@ class ListViewModel : ViewModel() {
                     val status = doc.getString("status") ?: "-"
                     val waktuRaw = doc.getString("waktu") ?: "-"
                     val type = doc.getString("type") ?: "-"
-                    val foto = doc.getString("foto") // ✅ FIX TAMBAH FOTO
+                    val foto = doc.getString("foto")
 
                     val tukarShift = doc.getBoolean("tukarShift") ?: false
                     val shiftPengganti = doc.getString("shiftPengganti")
@@ -72,12 +72,11 @@ class ListViewModel : ViewModel() {
                             type,
                             waktuRaw,
                             finalStatus,
-                            foto // ✅ FIX
+                            foto
                         )
                     )
                 }
 
-                // 🔥 GENERATE ALPA
                 val tanggalSet = fullList.map { it.tanggal }.toSet()
 
                 val calendar = Calendar.getInstance()
@@ -98,7 +97,7 @@ class ListViewModel : ViewModel() {
                                 "masuk",
                                 "-",
                                 "Alpa",
-                                null // ✅ FIX
+                                null
                             )
                         )
                     }
@@ -106,7 +105,6 @@ class ListViewModel : ViewModel() {
                     calendar.add(Calendar.DAY_OF_MONTH, 1)
                 }
 
-                // 🔥 SORT
                 fullList.sortByDescending { it.tanggal }
 
                 _absenList.value = fullList
