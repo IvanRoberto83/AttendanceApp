@@ -10,6 +10,7 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
+import com.example.absenywm.TimeUtils
 import androidx.core.content.ContextCompat
 import com.example.absenywm.MainActivity
 import com.example.absenywm.R
@@ -40,6 +41,8 @@ class CameraActivity : AppCompatActivity() {
     private var lat: Double = 0.0
     private var lng: Double = 0.0
 
+    private var shiftAsli: String? = null
+
     companion object {
         private const val REQUEST_CODE_CAMERA = 100
     }
@@ -53,6 +56,7 @@ class CameraActivity : AppCompatActivity() {
         btnBack = findViewById(R.id.btnBack)
 
         status = intent.getStringExtra("status")
+        shiftAsli = intent.getStringExtra("shiftAsli")
         tukarShift = intent.getBooleanExtra("tukarShift", false)
         shiftPengganti = intent.getStringExtra("shiftPengganti")
         keterangan = intent.getStringExtra("keterangan")
@@ -102,6 +106,14 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    private fun getShiftStart(): String {
+        return if (tukarShift && !shiftPengganti.isNullOrEmpty()) {
+            shiftPengganti!!.split(" - ")[0]
+        } else {
+            TimeUtils.extractStartTime(shiftAsli)
+        }
+    }
+
     private fun setupUI() {
         val color = if (type == "masuk") {
             R.color.blue_bold
@@ -148,6 +160,13 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun takePhotoAndSubmit() {
+        val shiftStart = getShiftStart()
+
+        if (!TimeUtils.isWithinAbsenTime(shiftStart)) {
+            Toast.makeText(this, "Waktu absen sudah habis", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val imageCapture = imageCapture ?: return
 
         val photoFile = File(
@@ -229,13 +248,22 @@ class CameraActivity : AppCompatActivity() {
                 override fun onSuccess(requestId: String?, resultData: MutableMap<Any?, Any?>?) {
 
                     val imageUrl = resultData?.get("secure_url")?.toString()
+                    val publicId = resultData?.get("public_id")?.toString()
 
                     val now = Date()
                     val dateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(now)
                     val timeNow = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(now)
 
+                    val shiftStart = getShiftStart()
+
+                    val finalStatus = if (status == "Hadir") {
+                        if (TimeUtils.isLate(shiftStart, timeNow)) "Telat" else "Hadir"
+                    } else {
+                        status ?: "Hadir"
+                    }
+
                     val data = hashMapOf(
-                        "status" to status,
+                        "status" to finalStatus,
                         "tukarShift" to tukarShift,
                         "shiftPengganti" to shiftPengganti,
                         "keterangan" to keterangan,
@@ -243,8 +271,10 @@ class CameraActivity : AppCompatActivity() {
                         "lat" to lat,
                         "lng" to lng,
                         "foto" to imageUrl,
+                        "public_id" to publicId,
                         "tanggal" to dateKey,
-                        "waktu" to timeNow
+                        "waktu" to timeNow,
+                        "timestamp" to System.currentTimeMillis()
                     )
 
                     FirebaseFirestore.getInstance()
@@ -257,9 +287,10 @@ class CameraActivity : AppCompatActivity() {
 
                             Toast.makeText(this@CameraActivity, "Absen berhasil", Toast.LENGTH_SHORT).show()
 
-                            val intent = Intent(this@CameraActivity, MainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                            startActivity(intent)
+                            startActivity(Intent(this@CameraActivity, MainActivity::class.java).apply {
+                                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                            })
+
                             finish()
                         }
                         .addOnFailureListener {

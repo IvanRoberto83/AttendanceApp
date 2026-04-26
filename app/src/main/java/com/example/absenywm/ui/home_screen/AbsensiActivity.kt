@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.absenywm.R
+import com.example.absenywm.TimeUtils
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.button.MaterialButton
@@ -475,9 +476,26 @@ class AbsensiActivity : AppCompatActivity() {
         }
     }
 
+    private fun isValidTime(): Boolean {
+        val shiftDipakai = if (tukarShift && !dropdownShift.text.isNullOrEmpty()) {
+            dropdownShift.text.toString()
+        } else {
+            userShift
+        }
+
+        val start = TimeUtils.extractStartTime(shiftDipakai)
+        return TimeUtils.isWithinAbsenTime(start)
+    }
+
     private fun goToCamera() {
+
         if (!isInsideRadius) {
             Toast.makeText(this, "Anda harus berada di area kantor", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (!isValidTime()) {
+            Toast.makeText(this, "Sudah melewati batas waktu absen", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -494,6 +512,7 @@ class AbsensiActivity : AppCompatActivity() {
         intent.putExtra("status", selectedStatus)
         intent.putExtra("tukarShift", tukarShift)
         intent.putExtra("shiftPengganti", selectedShift)
+        intent.putExtra("shiftAsli", userShift)
         intent.putExtra("keterangan", keterangan)
         intent.putExtra("type", absenType)
         intent.putExtra("lat", userLatLng?.latitude ?: 0.0)

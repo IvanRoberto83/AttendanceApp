@@ -36,6 +36,9 @@
         <activity android:name=".ui.home_screen.CameraActivity" />
         <activity android:name=".AdminActivity"/>
         <activity android:name=".MainActivity"/>
+        <activity android:name=".CreateAccountActivity"/>
+        <activity android:name=".EditAccountActivity" />
+        <activity android:name=".EditAdminAccountActivity" />
 
     </application>
 

@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.example.absenywm.TimeUtils
 import com.example.absenywm.databinding.FragmentHomeBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -41,25 +42,45 @@ class HomeFragment : Fragment() {
         binding.tvDate.text = dateFormat.format(Date())
 
         binding.btnCheckIn.setOnClickListener {
-            if (!isWithinAbsenTime()) {
-                Toast.makeText(requireContext(), "Diluar jam absen", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+            val userId = auth.currentUser?.uid ?: return@setOnClickListener
 
-            val intent = Intent(requireContext(), AbsensiActivity::class.java)
-            intent.putExtra("type", "masuk")
-            startActivity(intent)
+            db.collection("users").document(userId).get()
+                .addOnSuccessListener { doc ->
+
+                    val shiftMasuk = doc.getString("shiftMasuk") ?: "08:00"
+                    val start = TimeUtils.extractStartTime(shiftMasuk)
+
+                    if (!TimeUtils.isWithinAbsenTime(start)) {
+                        Toast.makeText(requireContext(), "Diluar jam absen", Toast.LENGTH_SHORT).show()
+                        return@addOnSuccessListener
+                    }
+
+                    val intent = Intent(requireContext(), AbsensiActivity::class.java)
+                    intent.putExtra("type", "masuk")
+                    intent.putExtra("shiftAsli", shiftMasuk)
+                    startActivity(intent)
+                }
         }
 
         binding.btnCheckOut.setOnClickListener {
-            if (!isWithinAbsenTime()) {
-                Toast.makeText(requireContext(), "Diluar jam absen", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+            val userId = auth.currentUser?.uid ?: return@setOnClickListener
 
-            val intent = Intent(requireContext(), AbsensiActivity::class.java)
-            intent.putExtra("type", "keluar")
-            startActivity(intent)
+            db.collection("users").document(userId).get()
+                .addOnSuccessListener { doc ->
+
+                    val shiftKeluar = doc.getString("shiftKeluar") ?: "08:00"
+                    val start = TimeUtils.extractStartTime(shiftKeluar)
+
+                    if (!TimeUtils.isWithinAbsenTime(start)) {
+                        Toast.makeText(requireContext(), "Diluar jam absen", Toast.LENGTH_SHORT).show()
+                        return@addOnSuccessListener
+                    }
+
+                    val intent = Intent(requireContext(), AbsensiActivity::class.java)
+                    intent.putExtra("type", "keluar")
+                    intent.putExtra("shiftAsli", shiftKeluar)
+                    startActivity(intent)
+                }
         }
 
         loadTodayData()
@@ -74,21 +95,9 @@ class HomeFragment : Fragment() {
         loadMonthlyStats()
     }
 
-    private fun isWithinAbsenTime(): Boolean {
-        val now = Calendar.getInstance()
-
-        val currentHour = now.get(Calendar.HOUR_OF_DAY)
-        val currentMinute = now.get(Calendar.MINUTE)
-
-        val currentTotal = currentHour * 60 + currentMinute
-
-        val ranges = listOf(
-            Pair(8 * 60, 8 * 60 + 30),
-            Pair(15 * 60, 15 * 60 + 30),
-            Pair(22 * 60, 22 * 60 + 30)
-        )
-
-        return ranges.any { currentTotal in it.first..it.second }
+    private fun canAbsen(shift: String): Boolean {
+        val start = TimeUtils.extractStartTime(shift)
+        return TimeUtils.isWithinAbsenTime(start)
     }
 
     private fun loadTodayData() {
@@ -136,14 +145,15 @@ class HomeFragment : Fragment() {
     private fun isLate(shiftTime: String, absenTime: String): Boolean {
         val format = SimpleDateFormat("HH:mm", Locale.getDefault())
 
-        val shift = format.parse(shiftTime)
-        val absen = format.parse(absenTime.substring(0, 5))
+        val shift = format.parse(shiftTime)!!
+        val absen = format.parse(absenTime.substring(0, 5))!!
 
-        val cal = Calendar.getInstance()
-        cal.time = shift!!
-        cal.add(Calendar.MINUTE, 30)
+        val batasHadir = Calendar.getInstance().apply {
+            time = shift
+            add(Calendar.MINUTE, 30)
+        }
 
-        return absen!!.after(cal.time)
+        return absen.after(batasHadir.time)
     }
 
     private fun extractStartTime(shiftRange: String?): String {

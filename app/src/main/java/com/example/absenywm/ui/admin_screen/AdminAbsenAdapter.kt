@@ -95,11 +95,31 @@ class AdminAbsenAdapter(
     }
 
     private fun updateStatus(view: View, item: AdminListViewModel, newStatus: String) {
-
         val context = view.context
 
-        if (item.docId != "ALPA") {
+        if (newStatus == "Alpa") {
+            if (item.docId == "ALPA") {
+                Toast.makeText(context, "Status sudah Alpa", Toast.LENGTH_SHORT).show()
+                return
+            }
 
+            db.collection("absensi")
+                .document(item.userId)
+                .collection("records")
+                .document(item.docId)
+                .delete()
+                .addOnSuccessListener {
+                    Toast.makeText(context, "Status dikembalikan ke Alpa", Toast.LENGTH_SHORT).show()
+                    onDataChanged()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(context, "Gagal update", Toast.LENGTH_SHORT).show()
+                }
+
+            return
+        }
+
+        if (item.docId != "ALPA") {
             db.collection("absensi")
                 .document(item.userId)
                 .collection("records")
@@ -114,35 +134,37 @@ class AdminAbsenAdapter(
                 }
 
         } else {
+            db.collection("users").document(item.userId).get()
+                .addOnSuccessListener { userDoc ->
+                    val shiftMasuk = userDoc.getString("shiftMasuk") ?: "08:00 - 15:00"
+                    val waktuShift = shiftMasuk.split(" - ")[0]
 
-            val newDocId = "${item.tanggal}_masuk"
+                    val newDocId = "${item.tanggal}_masuk"
+                    val dataBaru = mapOf(
+                        "tanggal" to item.tanggal,
+                        "status" to newStatus,
+                        "type" to "masuk",
+                        "waktu" to waktuShift,
+                        "shiftMasuk" to shiftMasuk,
+                        "createdByAdmin" to true
+                    )
 
-            val dataBaru = mapOf(
-                "tanggal" to item.tanggal,
-                "status" to newStatus,
-                "type" to "masuk",
-                "waktu" to "08:00",
-                "createdByAdmin" to true
-            )
-
-            db.collection("absensi")
-                .document(item.userId)
-                .collection("records")
-                .document(newDocId)
-                .set(dataBaru)
-                .addOnSuccessListener {
-                    Toast.makeText(context, "Alpa berhasil diubah", Toast.LENGTH_SHORT).show()
-                    onDataChanged()
+                    db.collection("absensi")
+                        .document(item.userId)
+                        .collection("records")
+                        .document(newDocId)
+                        .set(dataBaru)
+                        .addOnSuccessListener {
+                            Toast.makeText(context, "Alpa berhasil diubah", Toast.LENGTH_SHORT).show()
+                            onDataChanged()
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(context, "Gagal update", Toast.LENGTH_SHORT).show()
+                        }
                 }
                 .addOnFailureListener {
-                    Toast.makeText(context, "Gagal update", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Gagal ambil data user", Toast.LENGTH_SHORT).show()
                 }
         }
-    }
-
-    fun updateData(newList: List<AdminListViewModel>) {
-        list.clear()
-        list.addAll(newList)
-        notifyDataSetChanged()
     }
 }
