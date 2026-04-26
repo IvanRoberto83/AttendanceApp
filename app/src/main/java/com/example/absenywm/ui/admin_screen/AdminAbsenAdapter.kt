@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.cloudinary.android.MediaManager
 import com.example.absenywm.R
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -107,13 +108,37 @@ class AdminAbsenAdapter(
                 .document(item.userId)
                 .collection("records")
                 .document(item.docId)
-                .delete()
-                .addOnSuccessListener {
-                    Toast.makeText(context, "Status dikembalikan ke Alpa", Toast.LENGTH_SHORT).show()
-                    onDataChanged()
+                .get()
+                .addOnSuccessListener { doc ->
+                    val publicId = doc.getString("public_id")
+
+                    if (!publicId.isNullOrEmpty()) {
+                        Thread {
+                            try {
+                                MediaManager.get().cloudinary
+                                    .uploader()
+                                    .destroy(publicId, mapOf("invalidate" to true))
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }.start()
+                    }
+
+                    db.collection("absensi")
+                        .document(item.userId)
+                        .collection("records")
+                        .document(item.docId)
+                        .delete()
+                        .addOnSuccessListener {
+                            Toast.makeText(context, "Status dikembalikan ke Alpa", Toast.LENGTH_SHORT).show()
+                            onDataChanged()
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(context, "Gagal update", Toast.LENGTH_SHORT).show()
+                        }
                 }
                 .addOnFailureListener {
-                    Toast.makeText(context, "Gagal update", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Gagal mengambil data", Toast.LENGTH_SHORT).show()
                 }
 
             return

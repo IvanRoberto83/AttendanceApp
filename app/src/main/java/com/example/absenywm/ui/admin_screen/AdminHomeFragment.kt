@@ -104,6 +104,7 @@ class AdminHomeFragment : Fragment() {
                 var monthTelat = 0
                 var monthIzin = 0
                 var monthSakit = 0
+                var monthTukarShift = 0
 
                 var processedUser = 0
 
@@ -141,6 +142,9 @@ class AdminHomeFragment : Fragment() {
                                         "Izin" -> monthIzin++
                                         "Sakit" -> monthSakit++
                                     }
+                                    val isTukar = doc.getBoolean("tukarShift") ?: false
+                                    val type = doc.getString("type") ?: ""
+                                    if (isTukar && type == "masuk") monthTukarShift++
                                 }
                             }
 
@@ -169,7 +173,7 @@ class AdminHomeFragment : Fragment() {
                                 tvMonthIzin.text = monthIzin.toString()
                                 tvMonthTelat.text = monthTelat.toString()
                                 tvMonthAlpa.text = monthAlpa.toString()
-                                tvMonthTukarShift.text = "0"
+                                tvMonthTukarShift.text = monthTukarShift.toString()
 
                                 val hadirValid = todayHadir + todayTelat
                                 val totalAktif = totalUser - todayIzin

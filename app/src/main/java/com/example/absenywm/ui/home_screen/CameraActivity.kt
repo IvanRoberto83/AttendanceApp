@@ -163,7 +163,7 @@ class CameraActivity : AppCompatActivity() {
         val shiftStart = getShiftStart()
 
         if (!TimeUtils.isWithinAbsenTime(shiftStart)) {
-            Toast.makeText(this, "Waktu absen sudah habis", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Sudah melewati batas waktu absen", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -236,7 +236,7 @@ class CameraActivity : AppCompatActivity() {
 
         MediaManager.get().upload(photoFile.path)
             .unsigned("WredhaMulya")
-            .option("folder", "absensi")
+            .option("folder", "absensiKaryawan")
             .option("quality", "auto:low")
             .option("fetch_format", "auto")
             .callback(object : UploadCallback {

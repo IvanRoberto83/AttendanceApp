@@ -73,18 +73,22 @@ class SplashActivity : AppCompatActivity() {
 
                     if (timestamp < threeMonthsAgo) {
 
-                        val publicId = doc.getString("public_id") ?: continue
+                        val publicId = doc.getString("public_id")
 
-                        try {
-                            MediaManager.get().cloudinary
-                                .uploader()
-                                .destroy(publicId, mapOf("invalidate" to true))
+                        Thread {
+                            if (!publicId.isNullOrEmpty()) {
+                                try {
+                                    MediaManager.get().cloudinary
+                                        .uploader()
+                                        .destroy(publicId, mapOf("invalidate" to true))
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
 
                             doc.reference.delete()
 
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+                        }.start()
                     }
                 }
             }
