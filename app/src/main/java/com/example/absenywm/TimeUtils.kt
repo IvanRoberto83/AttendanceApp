@@ -1,6 +1,5 @@
 package com.example.absenywm
 
-import java.text.SimpleDateFormat
 import java.util.*
 
 object TimeUtils {
@@ -13,10 +12,10 @@ object TimeUtils {
         }
     }
 
-    fun isWithinAbsenTime(): Boolean {
-        val now = Calendar.getInstance()
-        val hour = now.get(Calendar.HOUR_OF_DAY)
-        val minute = now.get(Calendar.MINUTE)
+    fun isWithinAbsenTime(serverTime: Date): Boolean {
+        val cal = Calendar.getInstance().apply { time = serverTime }
+        val hour = cal.get(Calendar.HOUR_OF_DAY)
+        val minute = cal.get(Calendar.MINUTE)
         val nowMinutes = hour * 60 + minute
 
         val windows = listOf(
@@ -25,30 +24,30 @@ object TimeUtils {
             22 * 60 to 23 * 60
         )
 
-        return windows.any { (start, end) -> nowMinutes >= start && nowMinutes < end }
+        return windows.any { (start, end) ->
+            nowMinutes in start until end
+        }
     }
 
-    fun isLate(shiftStart: String, absenTime: String): Boolean {
-        val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+    fun isLate(shiftStart: String, serverTime: Date): Boolean {
+        return try {
+            val parts = shiftStart.split(":")
+            val shiftHour = parts[0].toInt()
+            val shiftMinute = parts[1].toInt()
 
-        val shift = format.parse(shiftStart) ?: return false
-        val absen = format.parse(absenTime.substring(0, 5)) ?: return false
+            val batasHadir = Calendar.getInstance().apply {
+                time = serverTime
+                set(Calendar.HOUR_OF_DAY, shiftHour)
+                set(Calendar.MINUTE, shiftMinute)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+                add(Calendar.MINUTE, 30)
+            }
 
-        val batasHadir = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, shift.hours)
-            set(Calendar.MINUTE, shift.minutes)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-            add(Calendar.MINUTE, 30)
+            serverTime.after(batasHadir.time)
+
+        } catch (e: Exception) {
+            false
         }
-
-        val absenCal = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, absen.hours)
-            set(Calendar.MINUTE, absen.minutes)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-
-        return absenCal.after(batasHadir)
     }
 }

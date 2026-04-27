@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.absenywm.TimeUtils
@@ -48,11 +47,6 @@ class HomeFragment : Fragment() {
                 .addOnSuccessListener { doc ->
                     val shift = doc.getString("shift") ?: "08:00 - 09:00"
 
-                    if (!TimeUtils.isWithinAbsenTime()) {
-                        Toast.makeText(requireContext(), "Diluar jam absen", Toast.LENGTH_SHORT).show()
-                        return@addOnSuccessListener
-                    }
-
                     val intent = Intent(requireContext(), AbsensiActivity::class.java)
                     intent.putExtra("type", "masuk")
                     intent.putExtra("shiftAsli", shift)
@@ -66,11 +60,6 @@ class HomeFragment : Fragment() {
             db.collection("users").document(userId).get()
                 .addOnSuccessListener { doc ->
                     val shift = doc.getString("shift") ?: "08:00 - 09:00"
-
-                    if (!TimeUtils.isWithinAbsenTime()) {
-                        Toast.makeText(requireContext(), "Diluar jam absen", Toast.LENGTH_SHORT).show()
-                        return@addOnSuccessListener
-                    }
 
                     val intent = Intent(requireContext(), AbsensiActivity::class.java)
                     intent.putExtra("type", "keluar")
@@ -178,7 +167,8 @@ class HomeFragment : Fragment() {
 
                                 if (type == "masuk") {
 
-                                    val waktu = doc.getString("waktu") ?: "00:00"
+                                    val timestamp = doc.getLong("server_timestamp") ?: 0L
+                                    val serverDate = Date(timestamp)
                                     val tukarShift = doc.getBoolean("tukarShift") ?: false
 
                                     val shiftDipakai = if (tukarShift) {
@@ -187,7 +177,7 @@ class HomeFragment : Fragment() {
                                         TimeUtils.extractStartTime(shift)
                                     }
 
-                                    if (TimeUtils.isLate(shiftDipakai, waktu)) {
+                                    if (TimeUtils.isLate(shiftDipakai, serverDate)) {
                                         telat++
                                     }
                                 }

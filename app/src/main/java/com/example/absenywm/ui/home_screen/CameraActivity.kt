@@ -159,34 +159,57 @@ class CameraActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    private fun getServerTimeAndSubmit(photoFile: File) {
+        val tempRef = FirebaseFirestore.getInstance()
+            .collection("serverTime")
+            .document("temp")
+
+        val tempData = hashMapOf(
+            "t" to com.google.firebase.firestore.FieldValue.serverTimestamp()
+        )
+
+        tempRef.set(tempData)
+            .addOnSuccessListener {
+                tempRef.get()
+                    .addOnSuccessListener { snap ->
+
+                        val serverTime = snap.getTimestamp("t")?.toDate() ?: Date()
+
+                        val isValid = TimeUtils.isWithinAbsenTime(serverTime)
+
+                        if (!isValid) {
+                            btnCapture.isEnabled = true
+                            Toast.makeText(this, "Diluar jam absen", Toast.LENGTH_SHORT).show()
+                            return@addOnSuccessListener
+                        }
+
+                        uploadToCloudinary(photoFile, serverTime)
+                    }
+            }
+            .addOnFailureListener {
+                btnCapture.isEnabled = true
+                Toast.makeText(this, "Gagal cek waktu server", Toast.LENGTH_SHORT).show()
+            }
+    }
+
     private fun takePhotoAndSubmit() {
-        if (!TimeUtils.isWithinAbsenTime()) {
-            Toast.makeText(this, "Sudah melewati batas waktu absen", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         val imageCapture = imageCapture ?: return
-
         val photoFile = File(
             externalCacheDir,
             SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
                 .format(System.currentTimeMillis()) + ".jpg"
         )
-
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
         btnCapture.isEnabled = false
 
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageSavedCallback {
-
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val compressedFile = compressImage(photoFile)
-                    uploadToCloudinary(compressedFile)
+                    getServerTimeAndSubmit(compressedFile)
                 }
-
                 override fun onError(exception: ImageCaptureException) {
                     btnCapture.isEnabled = true
                     Toast.makeText(this@CameraActivity, "Gagal ambil foto", Toast.LENGTH_SHORT).show()
@@ -224,13 +247,16 @@ class CameraActivity : AppCompatActivity() {
         return compressedFile
     }
 
-    private fun uploadToCloudinary(photoFile: File) {
+    private fun uploadToCloudinary(photoFile: File, serverTime: Date) {
 
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId == null) {
             Toast.makeText(this, "User tidak ditemukan", Toast.LENGTH_SHORT).show()
             return
         }
+
+        val dateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(serverTime)
+        val timeNow = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(serverTime)
 
         MediaManager.get().upload(photoFile.path)
             .unsigned("WredhaMulya")
@@ -248,14 +274,10 @@ class CameraActivity : AppCompatActivity() {
                     val imageUrl = resultData?.get("secure_url")?.toString()
                     val publicId = resultData?.get("public_id")?.toString()
 
-                    val now = Date()
-                    val dateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(now)
-                    val timeNow = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(now)
-
                     val shiftStart = getShiftStart()
 
                     val finalStatus = if (status == "Hadir") {
-                        if (TimeUtils.isLate(shiftStart, timeNow)) "Telat" else "Hadir"
+                        if (TimeUtils.isLate(shiftStart, serverTime)) "Telat" else "Hadir"
                     } else {
                         status ?: "Hadir"
                     }
@@ -272,7 +294,7 @@ class CameraActivity : AppCompatActivity() {
                         "public_id" to publicId,
                         "tanggal" to dateKey,
                         "waktu" to timeNow,
-                        "timestamp" to System.currentTimeMillis()
+                        "server_timestamp" to serverTime.time
                     )
 
                     FirebaseFirestore.getInstance()
