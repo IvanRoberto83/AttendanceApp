@@ -46,18 +46,16 @@ class HomeFragment : Fragment() {
 
             db.collection("users").document(userId).get()
                 .addOnSuccessListener { doc ->
+                    val shift = doc.getString("shift") ?: "08:00 - 09:00"
 
-                    val shiftMasuk = doc.getString("shiftMasuk") ?: "08:00"
-                    val start = TimeUtils.extractStartTime(shiftMasuk)
-
-                    if (!TimeUtils.isWithinAbsenTime(start)) {
+                    if (!TimeUtils.isWithinAbsenTime()) {
                         Toast.makeText(requireContext(), "Diluar jam absen", Toast.LENGTH_SHORT).show()
                         return@addOnSuccessListener
                     }
 
                     val intent = Intent(requireContext(), AbsensiActivity::class.java)
                     intent.putExtra("type", "masuk")
-                    intent.putExtra("shiftAsli", shiftMasuk)
+                    intent.putExtra("shiftAsli", shift)
                     startActivity(intent)
                 }
         }
@@ -67,18 +65,16 @@ class HomeFragment : Fragment() {
 
             db.collection("users").document(userId).get()
                 .addOnSuccessListener { doc ->
+                    val shift = doc.getString("shift") ?: "08:00 - 09:00"
 
-                    val shiftKeluar = doc.getString("shiftKeluar") ?: "08:00"
-                    val start = TimeUtils.extractStartTime(shiftKeluar)
-
-                    if (!TimeUtils.isWithinAbsenTime(start)) {
+                    if (!TimeUtils.isWithinAbsenTime()) {
                         Toast.makeText(requireContext(), "Diluar jam absen", Toast.LENGTH_SHORT).show()
                         return@addOnSuccessListener
                     }
 
                     val intent = Intent(requireContext(), AbsensiActivity::class.java)
                     intent.putExtra("type", "keluar")
-                    intent.putExtra("shiftAsli", shiftKeluar)
+                    intent.putExtra("shiftAsli", shift)
                     startActivity(intent)
                 }
         }
@@ -93,11 +89,6 @@ class HomeFragment : Fragment() {
         super.onResume()
         loadTodayData()
         loadMonthlyStats()
-    }
-
-    private fun canAbsen(shift: String): Boolean {
-        val start = TimeUtils.extractStartTime(shift)
-        return TimeUtils.isWithinAbsenTime(start)
     }
 
     private fun loadTodayData() {
@@ -142,28 +133,6 @@ class HomeFragment : Fragment() {
             }
     }
 
-    private fun isLate(shiftTime: String, absenTime: String): Boolean {
-        val format = SimpleDateFormat("HH:mm", Locale.getDefault())
-
-        val shift = format.parse(shiftTime)!!
-        val absen = format.parse(absenTime.substring(0, 5))!!
-
-        val batasHadir = Calendar.getInstance().apply {
-            time = shift
-            add(Calendar.MINUTE, 30)
-        }
-
-        return absen.after(batasHadir.time)
-    }
-
-    private fun extractStartTime(shiftRange: String?): String {
-        return try {
-            shiftRange?.split(" - ")?.get(0) ?: "08:00"
-        } catch (e: Exception) {
-            "08:00"
-        }
-    }
-
     private fun loadMonthlyStats() {
 
         val userId = auth.currentUser?.uid ?: return
@@ -174,7 +143,7 @@ class HomeFragment : Fragment() {
         db.collection("users").document(userId).get()
             .addOnSuccessListener { userDoc ->
 
-                val shiftMasuk = userDoc.getString("shiftMasuk") ?: "08:00"
+                val shift = userDoc.getString("shift") ?: "08:00"
 
                 db.collection("absensi")
                     .document(userId)
@@ -213,12 +182,12 @@ class HomeFragment : Fragment() {
                                     val tukarShift = doc.getBoolean("tukarShift") ?: false
 
                                     val shiftDipakai = if (tukarShift) {
-                                        extractStartTime(doc.getString("shiftPengganti"))
+                                        TimeUtils.extractStartTime(doc.getString("shiftPengganti"))
                                     } else {
-                                        shiftMasuk
+                                        TimeUtils.extractStartTime(shift)
                                     }
 
-                                    if (isLate(shiftDipakai, waktu)) {
+                                    if (TimeUtils.isLate(shiftDipakai, waktu)) {
                                         telat++
                                     }
                                 }

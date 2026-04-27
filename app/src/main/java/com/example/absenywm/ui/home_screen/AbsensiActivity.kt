@@ -483,8 +483,7 @@ class AbsensiActivity : AppCompatActivity() {
             userShift
         }
 
-        val start = TimeUtils.extractStartTime(shiftDipakai)
-        return TimeUtils.isWithinAbsenTime(start)
+        return TimeUtils.isWithinAbsenTime()
     }
 
     private fun goToCamera() {

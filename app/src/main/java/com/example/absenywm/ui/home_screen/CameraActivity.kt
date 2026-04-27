@@ -160,9 +160,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun takePhotoAndSubmit() {
-        val shiftStart = getShiftStart()
-
-        if (!TimeUtils.isWithinAbsenTime(shiftStart)) {
+        if (!TimeUtils.isWithinAbsenTime()) {
             Toast.makeText(this, "Sudah melewati batas waktu absen", Toast.LENGTH_SHORT).show()
             return
         }
