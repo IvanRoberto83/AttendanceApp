@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="3dp"
+    android:backgroundTint="#FFFDF0">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="14dp"
+        android:gravity="center_vertical">
+
+        <!-- LEFT: Info karyawan -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvApprovalNama"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nama Karyawan"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:textColor="@color/black"/>
+
+            <TextView
+                android:id="@+id/tvApprovalTanggal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="20 Apr 2026"
+                android:textSize="13sp"
+                android:textColor="#444444"
+                android:layout_marginTop="2dp"/>
+
+            <TextView
+                android:id="@+id/tvApprovalShiftPengganti"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shift pengganti: 15:00 - 22:00"
+                android:textSize="12sp"
+                android:textColor="#666666"
+                android:layout_marginTop="2dp"/>
+
+            <TextView
+                android:id="@+id/tvApprovalWaktu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Waktu absen: 15:05"
+                android:textSize="12sp"
+                android:textColor="#777777"
+                android:layout_marginTop="2dp"/>
+
+            <TextView
+                android:id="@+id/tvApprovalFoto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lihat Foto Absensi"
+                android:textSize="11sp"
+                android:textColor="#1A56DB"
+                android:layout_marginTop="4dp"/>
+
+        </LinearLayout>
+
+        <!-- RIGHT: Tombol Setujui & Tolak -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginStart="8dp">
+
+            <!-- Tombol Setujui (centang hijau) -->
+            <ImageButton
+                android:id="@+id/btnSetujui"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_btn_approve"
+                android:src="@drawable/baseline_check_24"
+                android:contentDescription="Setujui"
+                android:layout_marginEnd="8dp"
+                app:tint="@android:color/white" />
+
+            <!-- Tombol Tolak (silang merah) -->
+            <ImageButton
+                android:id="@+id/btnTolak"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_btn_reject"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:contentDescription="Tolak"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
